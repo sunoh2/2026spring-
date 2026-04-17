@@ -1,0 +1,1271 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>RoomSNS - 친구들끼리만 쓰는 SNS</title>
+  <style>
+    :root {
+      --bg: #f6f7fb;
+      --card: #ffffff;
+      --line: #e7eaf3;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --primary: #5b6cff;
+      --primary-soft: #eef1ff;
+      --danger: #ef4444;
+      --success: #10b981;
+      --shadow: 0 14px 34px rgba(34, 48, 86, 0.08);
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Noto Sans KR", Arial, sans-serif;
+      background: linear-gradient(180deg, #f9faff 0%, #f3f5fb 100%);
+      color: var(--text);
+    }
+
+    button, input, textarea, select {
+      font: inherit;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 22px;
+    }
+
+    .topbar {
+      background: rgba(255,255,255,0.9);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--line);
+      border-radius: 26px;
+      box-shadow: var(--shadow);
+      padding: 18px 22px;
+      display: flex;
+      gap: 14px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+      flex-wrap: wrap;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.6rem;
+    }
+
+    .brand p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      font-size: 0.95rem;
+    }
+
+    .userbar {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      background: var(--primary-soft);
+      color: #3341aa;
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: 320px 1fr;
+      gap: 20px;
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: var(--radius);
+      box-shadow: var(--shadow);
+    }
+
+    .side {
+      display: grid;
+      gap: 18px;
+      align-self: start;
+      position: sticky;
+      top: 18px;
+    }
+
+    .section {
+      padding: 18px;
+    }
+
+    .section h2, .section h3 {
+      margin: 0 0 12px;
+    }
+
+    .muted {
+      color: var(--muted);
+      font-size: 0.94rem;
+      line-height: 1.5;
+    }
+
+    .field {
+      display: grid;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .field label {
+      font-size: 0.92rem;
+      font-weight: 700;
+    }
+
+    .input, .textarea, .select {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px 14px;
+      background: #fff;
+      outline: none;
+      transition: 0.15s ease;
+    }
+
+    .input:focus, .textarea:focus, .select:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(91,108,255,0.1);
+    }
+
+    .textarea {
+      min-height: 110px;
+      resize: vertical;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 15px;
+      cursor: pointer;
+      font-weight: 800;
+      transition: 0.15s ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .btn.primary {
+      background: var(--primary);
+      color: white;
+    }
+
+    .btn.secondary {
+      background: #eef2f7;
+      color: #374151;
+    }
+
+    .btn.ghost {
+      background: white;
+      color: #374151;
+      border: 1px solid var(--line);
+    }
+
+    .btn.danger {
+      background: #fff1f1;
+      color: #b91c1c;
+      border: 1px solid #ffd8d8;
+    }
+
+    .room-list {
+      display: grid;
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .room-item {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+      cursor: pointer;
+      transition: 0.15s ease;
+      background: #fafbff;
+    }
+
+    .room-item:hover, .room-item.active {
+      border-color: var(--primary);
+      background: var(--primary-soft);
+    }
+
+    .room-item strong {
+      display: block;
+      margin-bottom: 6px;
+    }
+
+    .main {
+      display: grid;
+      gap: 18px;
+    }
+
+    .hero {
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      gap: 15px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+
+    .hero h2 {
+      margin: 0 0 8px;
+      font-size: 1.5rem;
+    }
+
+    .hero-meta {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .pill {
+      background: #f4f6fb;
+      border: 1px solid var(--line);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 0.92rem;
+      color: #4b5563;
+      font-weight: 700;
+    }
+
+    .composer {
+      padding: 20px;
+    }
+
+    .composer-grid {
+      display: grid;
+      grid-template-columns: 1fr 220px;
+      gap: 14px;
+    }
+
+    .hidden { display: none !important; }
+
+    .upload-preview {
+      margin-top: 10px;
+      display: grid;
+      gap: 8px;
+    }
+
+    .upload-preview img, .upload-preview video {
+      width: 100%;
+      max-height: 280px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+    }
+
+    .upload-preview audio {
+      width: 100%;
+    }
+
+    .calendar-card, .feed-card {
+      padding: 20px;
+    }
+
+    .calendar-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    .calendar-grid, .weekday-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 10px;
+    }
+
+    .weekday {
+      text-align: center;
+      font-weight: 800;
+      color: var(--muted);
+      padding: 6px 0;
+      font-size: 0.92rem;
+    }
+
+    .day {
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      min-height: 92px;
+      padding: 10px;
+      background: #fff;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      transition: 0.15s ease;
+    }
+
+    .day:hover {
+      border-color: var(--primary);
+      background: #fbfcff;
+    }
+
+    .day.empty {
+      background: #f8f9fc;
+      cursor: default;
+    }
+
+    .day.selected {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(91,108,255,0.13);
+      background: var(--primary-soft);
+    }
+
+    .day-num {
+      font-weight: 800;
+      font-size: 0.94rem;
+    }
+
+    .day-count {
+      margin-top: auto;
+      font-size: 0.82rem;
+      color: #3341aa;
+      font-weight: 800;
+    }
+
+    .day-users {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 4px;
+    }
+
+    .mini-user {
+      font-size: 0.76rem;
+      background: white;
+      border: 1px solid var(--line);
+      padding: 2px 6px;
+      border-radius: 999px;
+      color: #4b5563;
+    }
+
+    .feed-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-bottom: 14px;
+    }
+
+    .post-list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .post {
+      border: 1px solid var(--line);
+      border-radius: 20px;
+      padding: 16px;
+      background: #fbfcff;
+    }
+
+    .post-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: start;
+      margin-bottom: 10px;
+      flex-wrap: wrap;
+    }
+
+    .post-author {
+      font-weight: 800;
+      font-size: 1rem;
+    }
+
+    .post-time {
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .post-type {
+      font-size: 0.82rem;
+      padding: 6px 10px;
+      border-radius: 999px;
+      background: white;
+      border: 1px solid var(--line);
+      color: #4b5563;
+      font-weight: 700;
+    }
+
+    .post-body {
+      line-height: 1.6;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+
+    .post-media img, .post-media video {
+      width: 100%;
+      max-height: 400px;
+      object-fit: cover;
+      border-radius: 18px;
+      border: 1px solid var(--line);
+      margin-bottom: 10px;
+    }
+
+    .post-media audio {
+      width: 100%;
+      margin-bottom: 10px;
+    }
+
+    .link-box {
+      display: inline-flex;
+      gap: 8px;
+      align-items: center;
+      padding: 12px 14px;
+      border-radius: 14px;
+      background: white;
+      border: 1px solid var(--line);
+      color: #3341aa;
+      text-decoration: none;
+      font-weight: 700;
+      max-width: 100%;
+      word-break: break-all;
+    }
+
+    .reaction-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-bottom: 12px;
+    }
+
+    .reaction-btn {
+      border: 1px solid var(--line);
+      background: white;
+      border-radius: 999px;
+      padding: 8px 11px;
+      cursor: pointer;
+      font-size: 0.9rem;
+      font-weight: 700;
+      color: #4b5563;
+    }
+
+    .reaction-btn.active {
+      border-color: var(--primary);
+      color: #3341aa;
+      background: var(--primary-soft);
+    }
+
+    .comment-box {
+      background: white;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      padding: 12px;
+    }
+
+    .comment-list {
+      display: grid;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .comment {
+      background: #f7f8fc;
+      border-radius: 14px;
+      padding: 10px 12px;
+    }
+
+    .comment strong {
+      display: inline-block;
+      margin-right: 6px;
+    }
+
+    .empty-state {
+      text-align: center;
+      color: var(--muted);
+      border: 1px dashed var(--line);
+      padding: 26px;
+      border-radius: 20px;
+      background: #fbfcff;
+    }
+
+    .info-box {
+      border-radius: 16px;
+      padding: 12px 14px;
+      background: #fff8e8;
+      color: #7c5600;
+      line-height: 1.5;
+      font-size: 0.93rem;
+      border: 1px solid #ffe4a8;
+    }
+
+    @media (max-width: 1080px) {
+      .layout {
+        grid-template-columns: 1fr;
+      }
+
+      .side {
+        position: static;
+      }
+    }
+
+    @media (max-width: 820px) {
+      .composer-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .calendar-grid, .weekday-grid {
+        gap: 6px;
+      }
+
+      .day {
+        min-height: 84px;
+        padding: 8px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <div class="topbar card">
+      <div class="brand">
+        <h1>🔒 RoomSNS</h1>
+        <p>친구들끼리만 쓰는 폐쇄형 SNS · 방별 출입 코드 · 달력으로 날짜별 기록 보기</p>
+      </div>
+      <div class="userbar">
+        <span class="badge" id="currentUserBadge">사용자: 미설정</span>
+        <button class="btn secondary" id="setUserBtn">이름 설정</button>
+      </div>
+    </div>
+
+    <div class="layout">
+      <aside class="side">
+        <div class="card section">
+          <h2>방 만들기</h2>
+          <div class="field">
+            <label for="createRoomName">방 이름</label>
+            <input class="input" id="createRoomName" placeholder="예: 2조 프로젝트방" />
+          </div>
+          <div class="field">
+            <label for="createRoomCode">출입 코드</label>
+            <input class="input" id="createRoomCode" placeholder="예: TEAM2026" maxlength="20" />
+          </div>
+          <div class="muted">방마다 최대 인원은 10명입니다.</div>
+          <div class="btn-row" style="margin-top:12px;">
+            <button class="btn primary" id="createRoomBtn">방 생성</button>
+          </div>
+        </div>
+
+        <div class="card section">
+          <h2>방 들어가기</h2>
+          <div class="field">
+            <label for="joinRoomCode">출입 코드 입력</label>
+            <input class="input" id="joinRoomCode" placeholder="참여할 방의 코드를 입력" maxlength="20" />
+          </div>
+          <div class="btn-row">
+            <button class="btn primary" id="joinRoomBtn">입장하기</button>
+          </div>
+        </div>
+
+        <div class="card section">
+          <h2>내가 들어간 방</h2>
+          <div class="room-list" id="myRoomList"></div>
+        </div>
+
+        <div class="card section">
+          <h3>안내</h3>
+          <div class="info-box">
+            이 페이지는 HTML, CSS, JavaScript와 브라우저의 localStorage만으로 만든 데모입니다. 사진·동영상·음성 업로드는 브라우저 안에 저장되므로 너무 큰 파일은 저장이 어려울 수 있습니다.
+          </div>
+        </div>
+      </aside>
+
+      <main class="main">
+        <div class="card hero" id="roomHero">
+          <div>
+            <h2 id="activeRoomTitle">선택된 방이 없습니다</h2>
+            <div class="muted" id="activeRoomDesc">왼쪽에서 방을 만들거나 출입 코드를 입력해 입장해 보세요.</div>
+          </div>
+          <div class="hero-meta" id="activeRoomMeta"></div>
+        </div>
+
+        <div class="card composer hidden" id="composerCard">
+          <h2 style="margin:0 0 14px;">게시물 업로드</h2>
+          <div class="composer-grid">
+            <div>
+              <div class="field">
+                <label for="postType">업로드 형식</label>
+                <select class="select" id="postType">
+                  <option value="text">텍스트</option>
+                  <option value="photo">사진</option>
+                  <option value="video">동영상</option>
+                  <option value="audio">음성</option>
+                  <option value="link">링크</option>
+                </select>
+              </div>
+              <div class="field">
+                <label for="postText">내용</label>
+                <textarea class="textarea" id="postText" placeholder="친구들에게 남길 이야기를 적어보세요."></textarea>
+              </div>
+              <div class="field hidden" id="fileFieldWrap">
+                <label for="postFile">파일 업로드</label>
+                <input class="input" id="postFile" type="file" />
+              </div>
+              <div class="field hidden" id="linkFieldWrap">
+                <label for="postLink">링크 주소</label>
+                <input class="input" id="postLink" placeholder="https://example.com" />
+              </div>
+              <div class="upload-preview" id="uploadPreview"></div>
+            </div>
+            <div>
+              <div class="field">
+                <label>업로드 날짜</label>
+                <input class="input" id="postDate" type="date" />
+              </div>
+              <div class="field">
+                <label>작성자</label>
+                <input class="input" id="authorReadonly" disabled />
+              </div>
+              <div class="btn-row" style="margin-top: 8px;">
+                <button class="btn primary" id="uploadPostBtn">게시하기</button>
+                <button class="btn ghost" id="clearComposerBtn">입력 지우기</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card calendar-card hidden" id="calendarCard">
+          <div class="calendar-header">
+            <div>
+              <h2 style="margin:0 0 6px;">방 달력</h2>
+              <div class="muted">날짜를 클릭하면 그날 업로드된 여러 사용자의 게시물을 한 번에 볼 수 있어요.</div>
+            </div>
+            <div class="btn-row">
+              <button class="btn secondary" id="prevMonthBtn">이전달</button>
+              <span class="pill" id="calendarTitle"></span>
+              <button class="btn secondary" id="nextMonthBtn">다음달</button>
+              <button class="btn ghost" id="resetDateFilterBtn">전체 보기</button>
+            </div>
+          </div>
+          <div class="weekday-grid">
+            <div class="weekday">일</div>
+            <div class="weekday">월</div>
+            <div class="weekday">화</div>
+            <div class="weekday">수</div>
+            <div class="weekday">목</div>
+            <div class="weekday">금</div>
+            <div class="weekday">토</div>
+          </div>
+          <div class="calendar-grid" id="calendarGrid"></div>
+        </div>
+
+        <div class="card feed-card hidden" id="feedCard">
+          <div class="feed-top">
+            <div>
+              <h2 style="margin:0 0 6px;">게시물 보기</h2>
+              <div class="muted" id="feedFilterText">전체 게시물을 보여줍니다.</div>
+            </div>
+          </div>
+          <div class="post-list" id="postList"></div>
+        </div>
+      </main>
+    </div>
+  </div>
+
+  <script>
+    const STORAGE_KEY = "room_sns_demo_v1";
+    const USER_KEY = "room_sns_user_v1";
+    const MAX_MEMBERS = 10;
+    const builtInReactions = [
+      { key: "like", label: "👍 좋아요" },
+      { key: "sad", label: "😢 슬퍼요" },
+      { key: "angry", label: "😡 화나요" },
+      { key: "heart", label: "❤️ 하트" }
+    ];
+
+    let appState = loadState();
+    let currentUser = localStorage.getItem(USER_KEY) || "";
+    let activeRoomId = appState.lastRoomId || null;
+    let calendarYear = new Date().getFullYear();
+    let calendarMonth = new Date().getMonth();
+    let selectedDate = null;
+    let pendingUpload = null;
+
+    const currentUserBadge = document.getElementById("currentUserBadge");
+    const setUserBtn = document.getElementById("setUserBtn");
+    const createRoomName = document.getElementById("createRoomName");
+    const createRoomCode = document.getElementById("createRoomCode");
+    const createRoomBtn = document.getElementById("createRoomBtn");
+    const joinRoomCode = document.getElementById("joinRoomCode");
+    const joinRoomBtn = document.getElementById("joinRoomBtn");
+    const myRoomList = document.getElementById("myRoomList");
+    const activeRoomTitle = document.getElementById("activeRoomTitle");
+    const activeRoomDesc = document.getElementById("activeRoomDesc");
+    const activeRoomMeta = document.getElementById("activeRoomMeta");
+    const composerCard = document.getElementById("composerCard");
+    const calendarCard = document.getElementById("calendarCard");
+    const feedCard = document.getElementById("feedCard");
+    const postType = document.getElementById("postType");
+    const postText = document.getElementById("postText");
+    const postFile = document.getElementById("postFile");
+    const postLink = document.getElementById("postLink");
+    const postDate = document.getElementById("postDate");
+    const authorReadonly = document.getElementById("authorReadonly");
+    const fileFieldWrap = document.getElementById("fileFieldWrap");
+    const linkFieldWrap = document.getElementById("linkFieldWrap");
+    const uploadPreview = document.getElementById("uploadPreview");
+    const uploadPostBtn = document.getElementById("uploadPostBtn");
+    const clearComposerBtn = document.getElementById("clearComposerBtn");
+    const calendarGrid = document.getElementById("calendarGrid");
+    const calendarTitle = document.getElementById("calendarTitle");
+    const prevMonthBtn = document.getElementById("prevMonthBtn");
+    const nextMonthBtn = document.getElementById("nextMonthBtn");
+    const resetDateFilterBtn = document.getElementById("resetDateFilterBtn");
+    const postList = document.getElementById("postList");
+    const feedFilterText = document.getElementById("feedFilterText");
+
+    function loadState() {
+      try {
+        const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY));
+        if (parsed && Array.isArray(parsed.rooms)) return parsed;
+      } catch (e) {}
+      return { rooms: [], lastRoomId: null };
+    }
+
+    function saveState() {
+      appState.lastRoomId = activeRoomId;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+    }
+
+    function uid(prefix = "id") {
+      return `${prefix}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
+    }
+
+    function todayStr() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function formatDateTime(iso) {
+      const d = new Date(iso);
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}-${String(d.getDate()).padStart(2,"0")} ${String(d.getHours()).padStart(2,"0")}:${String(d.getMinutes()).padStart(2,"0")}`;
+    }
+
+    function escapeHtml(str) {
+      return String(str)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    function getActiveRoom() {
+      return appState.rooms.find(r => r.id === activeRoomId) || null;
+    }
+
+    function promptForUser() {
+      const input = prompt("사용할 이름을 입력해 주세요.", currentUser || "");
+      if (input === null) return false;
+      const trimmed = input.trim().slice(0, 20);
+      if (!trimmed) {
+        alert("이름을 입력해야 합니다.");
+        return false;
+      }
+      currentUser = trimmed;
+      localStorage.setItem(USER_KEY, currentUser);
+      renderAll();
+      return true;
+    }
+
+    function ensureUser() {
+      return currentUser || promptForUser();
+    }
+
+    function createRoom() {
+      if (!ensureUser()) return;
+      const name = createRoomName.value.trim();
+      const code = createRoomCode.value.trim();
+      if (!name || !code) {
+        alert("방 이름과 출입 코드를 모두 입력해 주세요.");
+        return;
+      }
+      const exists = appState.rooms.some(room => room.code.toLowerCase() === code.toLowerCase());
+      if (exists) {
+        alert("이미 사용 중인 출입 코드입니다.");
+        return;
+      }
+      const room = {
+        id: uid("room"),
+        name,
+        code,
+        createdAt: new Date().toISOString(),
+        owner: currentUser,
+        members: [currentUser],
+        posts: []
+      };
+      appState.rooms.unshift(room);
+      activeRoomId = room.id;
+      saveState();
+      createRoomName.value = "";
+      createRoomCode.value = "";
+      alert("방이 생성되었습니다.");
+      renderAll();
+    }
+
+    function joinRoomByCode() {
+      if (!ensureUser()) return;
+      const code = joinRoomCode.value.trim();
+      if (!code) {
+        alert("출입 코드를 입력해 주세요.");
+        return;
+      }
+      const room = appState.rooms.find(r => r.code.toLowerCase() === code.toLowerCase());
+      if (!room) {
+        alert("해당 출입 코드를 가진 방을 찾을 수 없습니다.");
+        return;
+      }
+      if (!room.members.includes(currentUser)) {
+        if (room.members.length >= MAX_MEMBERS) {
+          alert("이 방은 최대 인원 10명으로 가득 찼습니다.");
+          return;
+        }
+        room.members.push(currentUser);
+      }
+      activeRoomId = room.id;
+      saveState();
+      joinRoomCode.value = "";
+      renderAll();
+    }
+
+    function switchRoom(roomId) {
+      activeRoomId = roomId;
+      selectedDate = null;
+      const room = getActiveRoom();
+      const baseDate = room && room.posts.length ? new Date(room.posts[0].createdAt) : new Date();
+      calendarYear = baseDate.getFullYear();
+      calendarMonth = baseDate.getMonth();
+      saveState();
+      renderAll();
+    }
+
+    function updateCurrentUserUI() {
+      currentUserBadge.textContent = `사용자: ${currentUser || "미설정"}`;
+      authorReadonly.value = currentUser || "이름을 먼저 설정하세요";
+    }
+
+    function renderRoomList() {
+      myRoomList.innerHTML = "";
+      if (!currentUser) {
+        myRoomList.innerHTML = `<div class="empty-state">먼저 이름을 설정해 주세요.</div>`;
+        return;
+      }
+      const joinedRooms = appState.rooms.filter(room => room.members.includes(currentUser));
+      if (!joinedRooms.length) {
+        myRoomList.innerHTML = `<div class="empty-state">아직 참여한 방이 없습니다.</div>`;
+        return;
+      }
+      joinedRooms.forEach(room => {
+        const item = document.createElement("div");
+        item.className = `room-item ${room.id === activeRoomId ? "active" : ""}`;
+        item.innerHTML = `
+          <strong>${escapeHtml(room.name)}</strong>
+          <div class="muted">인원 ${room.members.length}/10 · 게시물 ${room.posts.length}개</div>
+          <div class="muted">코드: ${escapeHtml(room.code)}</div>
+        `;
+        item.onclick = () => switchRoom(room.id);
+        myRoomList.appendChild(item);
+      });
+    }
+
+    function renderHero() {
+      const room = getActiveRoom();
+      if (!room || !currentUser || !room.members.includes(currentUser)) {
+        activeRoomTitle.textContent = "선택된 방이 없습니다";
+        activeRoomDesc.textContent = "왼쪽에서 방을 만들거나 출입 코드를 입력해 입장해 보세요.";
+        activeRoomMeta.innerHTML = "";
+        composerCard.classList.add("hidden");
+        calendarCard.classList.add("hidden");
+        feedCard.classList.add("hidden");
+        return;
+      }
+      activeRoomTitle.textContent = room.name;
+      activeRoomDesc.textContent = `방 코드가 맞는 사람만 입장할 수 있는 비공개 공간입니다. 현재 참여 인원은 ${room.members.length}명입니다.`;
+      activeRoomMeta.innerHTML = `
+        <span class="pill">출입 코드: ${escapeHtml(room.code)}</span>
+        <span class="pill">방장: ${escapeHtml(room.owner)}</span>
+        <span class="pill">인원: ${room.members.length}/10</span>
+      `;
+      composerCard.classList.remove("hidden");
+      calendarCard.classList.remove("hidden");
+      feedCard.classList.remove("hidden");
+    }
+
+    function handlePostTypeUI() {
+      const type = postType.value;
+      fileFieldWrap.classList.toggle("hidden", !(type === "photo" || type === "video" || type === "audio"));
+      linkFieldWrap.classList.toggle("hidden", type !== "link");
+      postFile.value = "";
+      pendingUpload = null;
+      uploadPreview.innerHTML = "";
+      if (type === "photo") postFile.accept = "image/*";
+      if (type === "video") postFile.accept = "video/*";
+      if (type === "audio") postFile.accept = "audio/*";
+    }
+
+    function readFileAsDataURL(file) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+    }
+
+    async function onFileChange() {
+      const file = postFile.files[0];
+      uploadPreview.innerHTML = "";
+      pendingUpload = null;
+      if (!file) return;
+      try {
+        const dataUrl = await readFileAsDataURL(file);
+        pendingUpload = { name: file.name, type: file.type, dataUrl };
+        renderPendingPreview();
+      } catch (e) {
+        alert("파일을 읽는 중 문제가 발생했습니다.");
+      }
+    }
+
+    function renderPendingPreview() {
+      uploadPreview.innerHTML = "";
+      if (!pendingUpload) return;
+      const mime = pendingUpload.type || "";
+      if (mime.startsWith("image/")) {
+        uploadPreview.innerHTML = `<img src="${pendingUpload.dataUrl}" alt="미리보기" />`;
+      } else if (mime.startsWith("video/")) {
+        uploadPreview.innerHTML = `<video controls src="${pendingUpload.dataUrl}"></video>`;
+      } else if (mime.startsWith("audio/")) {
+        uploadPreview.innerHTML = `<audio controls src="${pendingUpload.dataUrl}"></audio>`;
+      } else {
+        uploadPreview.innerHTML = `<div class="muted">${escapeHtml(pendingUpload.name)}</div>`;
+      }
+    }
+
+    function clearComposer() {
+      postType.value = "text";
+      postText.value = "";
+      postLink.value = "";
+      postFile.value = "";
+      postDate.value = todayStr();
+      pendingUpload = null;
+      uploadPreview.innerHTML = "";
+      handlePostTypeUI();
+    }
+
+    function uploadPost() {
+      const room = getActiveRoom();
+      if (!room) return;
+      if (!ensureUser()) return;
+      if (!room.members.includes(currentUser)) {
+        alert("이 방의 멤버만 게시할 수 있습니다.");
+        return;
+      }
+      const type = postType.value;
+      const text = postText.value.trim();
+      const chosenDate = postDate.value || todayStr();
+      const post = {
+        id: uid("post"),
+        author: currentUser,
+        type,
+        text,
+        date: chosenDate,
+        createdAt: new Date().toISOString(),
+        comments: [],
+        reactions: {},
+        customReactionLabels: []
+      };
+
+      if (type === "link") {
+        const link = postLink.value.trim();
+        if (!link) {
+          alert("링크를 입력해 주세요.");
+          return;
+        }
+        post.link = link;
+      }
+
+      if (type === "photo" || type === "video" || type === "audio") {
+        if (!pendingUpload) {
+          alert("파일을 업로드해 주세요.");
+          return;
+        }
+        post.file = pendingUpload;
+      }
+
+      if (type === "text" && !text) {
+        alert("텍스트 내용을 입력해 주세요.");
+        return;
+      }
+
+      room.posts.unshift(post);
+      saveState();
+      clearComposer();
+      selectedDate = chosenDate;
+      calendarYear = new Date(chosenDate).getFullYear();
+      calendarMonth = new Date(chosenDate).getMonth();
+      renderAll();
+    }
+
+    function getRoomPostsFiltered(room) {
+      if (!room) return [];
+      const posts = [...room.posts].sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt));
+      if (!selectedDate) return posts;
+      return posts.filter(post => post.date === selectedDate);
+    }
+
+    function renderCalendar() {
+      const room = getActiveRoom();
+      calendarGrid.innerHTML = "";
+      if (!room) return;
+      calendarTitle.textContent = `${calendarYear}년 ${calendarMonth + 1}월`;
+
+      const firstDay = new Date(calendarYear, calendarMonth, 1).getDay();
+      const lastDate = new Date(calendarYear, calendarMonth + 1, 0).getDate();
+
+      for (let i = 0; i < firstDay; i++) {
+        const empty = document.createElement("div");
+        empty.className = "day empty";
+        calendarGrid.appendChild(empty);
+      }
+
+      for (let day = 1; day <= lastDate; day++) {
+        const dateKey = `${calendarYear}-${String(calendarMonth + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const posts = room.posts.filter(post => post.date === dateKey);
+        const users = [...new Set(posts.map(post => post.author))].slice(0, 3);
+        const cell = document.createElement("div");
+        cell.className = `day ${selectedDate === dateKey ? "selected" : ""}`;
+        if (!posts.length) cell.classList.add("no-post");
+        cell.innerHTML = `
+          <div class="day-num">${day}</div>
+          <div class="day-users">${users.map(name => `<span class="mini-user">${escapeHtml(name)}</span>`).join("")}</div>
+          <div class="day-count">${posts.length ? `${posts.length}개 게시물` : "기록 없음"}</div>
+        `;
+        cell.onclick = () => {
+          selectedDate = dateKey;
+          renderAll();
+        };
+        calendarGrid.appendChild(cell);
+      }
+    }
+
+    function reactionEntries(post) {
+      const merged = [...builtInReactions.map(r => ({ key: r.key, label: r.label }))];
+      (post.customReactionLabels || []).forEach(label => {
+        merged.push({ key: `custom:${label}`, label });
+      });
+      return merged;
+    }
+
+    function reactionCount(post, key) {
+      const arr = post.reactions[key] || [];
+      return arr.length;
+    }
+
+    function toggleReaction(roomId, postId, reactionKey, customLabel = null) {
+      const room = appState.rooms.find(r => r.id === roomId);
+      if (!room) return;
+      const post = room.posts.find(p => p.id === postId);
+      if (!post) return;
+      if (!ensureUser()) return;
+
+      if (customLabel && !(post.customReactionLabels || []).includes(customLabel)) {
+        post.customReactionLabels = post.customReactionLabels || [];
+        post.customReactionLabels.push(customLabel);
+      }
+
+      const users = post.reactions[reactionKey] || [];
+      post.reactions[reactionKey] = users.includes(currentUser)
+        ? users.filter(name => name !== currentUser)
+        : [...users, currentUser];
+
+      saveState();
+      renderPosts();
+    }
+
+    function addCustomReaction(roomId, postId) {
+      if (!ensureUser()) return;
+      const label = prompt("새로운 감정 반응 이름을 입력해 주세요.", "공감해요");
+      if (label === null) return;
+      const trimmed = label.trim().slice(0, 12);
+      if (!trimmed) return;
+      toggleReaction(roomId, postId, `custom:${trimmed}`, trimmed);
+    }
+
+    function addComment(roomId, postId, inputEl) {
+      const text = inputEl.value.trim();
+      if (!text) return;
+      if (!ensureUser()) return;
+      const room = appState.rooms.find(r => r.id === roomId);
+      if (!room) return;
+      const post = room.posts.find(p => p.id === postId);
+      if (!post) return;
+      post.comments.unshift({ id: uid("comment"), author: currentUser, text, createdAt: new Date().toISOString() });
+      saveState();
+      renderPosts();
+    }
+
+    function renderPostMedia(post) {
+      if (post.type === "photo" && post.file) {
+        return `<div class="post-media"><img src="${post.file.dataUrl}" alt="업로드 이미지" /></div>`;
+      }
+      if (post.type === "video" && post.file) {
+        return `<div class="post-media"><video controls src="${post.file.dataUrl}"></video></div>`;
+      }
+      if (post.type === "audio" && post.file) {
+        return `<div class="post-media"><audio controls src="${post.file.dataUrl}"></audio></div>`;
+      }
+      if (post.type === "link" && post.link) {
+        const safeLink = escapeHtml(post.link);
+        return `<div class="post-media"><a class="link-box" href="${safeLink}" target="_blank" rel="noopener noreferrer">🔗 ${safeLink}</a></div>`;
+      }
+      return "";
+    }
+
+    function renderPosts() {
+      const room = getActiveRoom();
+      if (!room) {
+        postList.innerHTML = "";
+        return;
+      }
+      const filtered = getRoomPostsFiltered(room);
+      feedFilterText.textContent = selectedDate
+        ? `${selectedDate}에 업로드된 게시물을 보여줍니다.`
+        : "전체 게시물을 보여줍니다.";
+
+      if (!filtered.length) {
+        postList.innerHTML = `<div class="empty-state">아직 게시물이 없습니다. 첫 게시물을 올려 보세요.</div>`;
+        return;
+      }
+
+      postList.innerHTML = filtered.map(post => {
+        const reactionButtons = reactionEntries(post).map(item => {
+          const users = post.reactions[item.key] || [];
+          const active = users.includes(currentUser);
+          return `
+            <button class="reaction-btn ${active ? "active" : ""}" onclick="window.__app.toggleReaction('${room.id}','${post.id}','${item.key.replace(/'/g, "\\'")}')">
+              ${escapeHtml(item.label)} ${users.length ? `<span>(${users.length})</span>` : ""}
+            </button>
+          `;
+        }).join("");
+
+        const commentsHtml = (post.comments || []).map(comment => `
+          <div class="comment">
+            <strong>${escapeHtml(comment.author)}</strong>
+            <span>${escapeHtml(comment.text)}</span>
+            <div class="post-time" style="margin-top:6px;">${formatDateTime(comment.createdAt)}</div>
+          </div>
+        `).join("") || `<div class="muted">아직 댓글이 없습니다.</div>`;
+
+        return `
+          <article class="post">
+            <div class="post-head">
+              <div>
+                <div class="post-author">${escapeHtml(post.author)}</div>
+                <div class="post-time">업로드 날짜 ${escapeHtml(post.date)} · 작성 시간 ${formatDateTime(post.createdAt)}</div>
+              </div>
+              <div class="post-type">${typeLabel(post.type)}</div>
+            </div>
+            ${post.text ? `<div class="post-body">${escapeHtml(post.text)}</div>` : ""}
+            ${renderPostMedia(post)}
+            <div class="reaction-row">
+              ${reactionButtons}
+              <button class="reaction-btn" onclick="window.__app.addCustomReaction('${room.id}','${post.id}')">➕ 새로운감정</button>
+            </div>
+            <div class="comment-box">
+              <div class="comment-list">${commentsHtml}</div>
+              <div class="btn-row">
+                <input class="input" id="comment_input_${post.id}" placeholder="댓글을 입력하세요" />
+                <button class="btn primary" onclick="window.__app.submitComment('${room.id}','${post.id}')">댓글 작성</button>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function typeLabel(type) {
+      if (type === "text") return "텍스트";
+      if (type === "photo") return "사진";
+      if (type === "video") return "동영상";
+      if (type === "audio") return "음성";
+      if (type === "link") return "링크";
+      return type;
+    }
+
+    function submitComment(roomId, postId) {
+      const inputEl = document.getElementById(`comment_input_${postId}`);
+      if (!inputEl) return;
+      addComment(roomId, postId, inputEl);
+    }
+
+    function renderAll() {
+      updateCurrentUserUI();
+      renderRoomList();
+      renderHero();
+      renderCalendar();
+      renderPosts();
+    }
+
+    setUserBtn.addEventListener("click", promptForUser);
+    createRoomBtn.addEventListener("click", createRoom);
+    joinRoomBtn.addEventListener("click", joinRoomByCode);
+    postType.addEventListener("change", handlePostTypeUI);
+    postFile.addEventListener("change", onFileChange);
+    uploadPostBtn.addEventListener("click", uploadPost);
+    clearComposerBtn.addEventListener("click", clearComposer);
+    prevMonthBtn.addEventListener("click", () => {
+      calendarMonth -= 1;
+      if (calendarMonth < 0) {
+        calendarMonth = 11;
+        calendarYear -= 1;
+      }
+      renderCalendar();
+    });
+    nextMonthBtn.addEventListener("click", () => {
+      calendarMonth += 1;
+      if (calendarMonth > 11) {
+        calendarMonth = 0;
+        calendarYear += 1;
+      }
+      renderCalendar();
+    });
+    resetDateFilterBtn.addEventListener("click", () => {
+      selectedDate = null;
+      renderAll();
+    });
+
+    window.__app = {
+      toggleReaction,
+      addCustomReaction,
+      submitComment
+    };
+
+    postDate.value = todayStr();
+    handlePostTypeUI();
+    renderAll();
+  </script>
+</body>
+</html>
