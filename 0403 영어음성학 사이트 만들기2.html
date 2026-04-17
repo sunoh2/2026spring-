@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>카페 좌석 현황 확인 사이트</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: linear-gradient(135deg, #fdf6f0, #f5ebe0);
+      color: #3e2f26;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 22px;
+      box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+      padding: 28px;
+      margin-bottom: 24px;
+    }
+
+    h1 {
+      text-align: center;
+      margin-bottom: 10px;
+      font-size: 2.2rem;
+    }
+
+    .subtitle {
+      text-align: center;
+      color: #7a675b;
+      margin-bottom: 30px;
+    }
+
+    .cafe-select {
+      width: 100%;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      font-size: 1rem;
+      margin-bottom: 20px;
+    }
+
+    .status-box {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .info {
+      background: #f8f4f0;
+      border-radius: 16px;
+      padding: 18px;
+      text-align: center;
+    }
+
+    .info h2 {
+      font-size: 0.95rem;
+      color: #7a675b;
+      margin-bottom: 10px;
+    }
+
+    .info p {
+      font-size: 1.5rem;
+      font-weight: bold;
+      margin: 0;
+    }
+
+    .seat-map {
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 12px;
+      margin-top: 20px;
+    }
+
+    .seat {
+      background: #d8f3dc;
+      border-radius: 14px;
+      padding: 20px 10px;
+      text-align: center;
+      font-weight: bold;
+      transition: 0.2s;
+      cursor: pointer;
+      border: 2px solid transparent;
+    }
+
+    .seat:hover {
+      transform: translateY(-2px);
+    }
+
+    .seat.occupied {
+      background: #f8d7da;
+    }
+
+    .seat.outlet {
+      border-color: #8d6e63;
+    }
+
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-top: 18px;
+      font-size: 0.95rem;
+      color: #6b5a50;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    .available-dot {
+      background: #d8f3dc;
+    }
+
+    .occupied-dot {
+      background: #f8d7da;
+    }
+
+    .outlet-dot {
+      background: #fff;
+      border: 2px solid #8d6e63;
+    }
+
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 24px;
+    }
+
+    button {
+      flex: 1;
+      min-width: 140px;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: #8d6e63;
+      color: white;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #6d4c41;
+    }
+
+    .bar-wrap {
+      margin-top: 20px;
+    }
+
+    .bar-label {
+      margin-bottom: 8px;
+      font-weight: bold;
+      color: #6b5a50;
+    }
+
+    .bar-bg {
+      width: 100%;
+      height: 20px;
+      background: #eee;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+
+    .bar-fill {
+      height: 100%;
+      width: 0%;
+      background: #8d6e63;
+      transition: width 0.3s ease;
+    }
+
+    .update-time {
+      margin-top: 16px;
+      color: #7a675b;
+      font-size: 0.95rem;
+    }
+
+    .notice {
+      margin-top: 18px;
+      background: #fff8e1;
+      color: #7c5b00;
+      padding: 14px;
+      border-radius: 12px;
+      line-height: 1.5;
+    }
+
+    @media (max-width: 700px) {
+      .seat-map {
+        grid-template-columns: repeat(3, 1fr);
+      }
+
+      h1 {
+        font-size: 1.8rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="card">
+      <h1>☕ 카페 좌석 현황 확인 사이트</h1>
+      <p class="subtitle">좌석 상태를 한눈에 확인하고, 혼잡도를 빠르게 파악할 수 있는 웹페이지</p>
+
+      <select class="cafe-select" id="cafeSelect">
+        <option value="별빛카페">별빛카페</option>
+        <option value="모닝브루">모닝브루</option>
+        <option value="그린빈카페">그린빈카페</option>
+      </select>
+
+      <div class="status-box">
+        <div class="info">
+          <h2>전체 좌석 수</h2>
+          <p id="totalSeats">15석</p>
+        </div>
+        <div class="info">
+          <h2>남은 좌석 수</h2>
+          <p id="availableSeats">15석</p>
+        </div>
+        <div class="info">
+          <h2>현재 혼잡도</h2>
+          <p id="crowdStatus">여유</p>
+        </div>
+      </div>
+
+      <div class="bar-wrap">
+        <div class="bar-label">좌석 점유율</div>
+        <div class="bar-bg">
+          <div class="bar-fill" id="occupancyBar"></div>
+        </div>
+      </div>
+
+      <div class="seat-map" id="seatMap"></div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot available-dot"></span> 이용 가능</div>
+        <div class="legend-item"><span class="dot occupied-dot"></span> 사용 중</div>
+        <div class="legend-item"><span class="dot outlet-dot"></span> 콘센트석</div>
+      </div>
+
+      <div class="controls">
+        <button id="randomFillBtn">랜덤으로 손님 들어오기</button>
+        <button id="randomLeaveBtn">랜덤으로 손님 나가기</button>
+        <button id="resetBtn">전체 초기화</button>
+      </div>
+
+      <div class="update-time" id="updateTime">마지막 업데이트: 없음</div>
+
+      <div class="notice">
+        이 사이트는 센서와 자동 연동된 실시간 시스템이라기보다, 좌석 상태를 시뮬레이션하여 보여주는 웹페이지입니다.
+        과제 발표에서는 “실제 카페에서 직원 입력 또는 사용자 제보 방식으로 확장 가능하다”라고 설명하면 좋아요.
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const totalSeatCount = 15;
+    const outletSeats = [2, 5, 8, 11, 14];
+    let seats = Array(totalSeatCount).fill(false);
+
+    const seatMap = document.getElementById("seatMap");
+    const availableSeatsText = document.getElementById("availableSeats");
+    const crowdStatusText = document.getElementById("crowdStatus");
+    const occupancyBar = document.getElementById("occupancyBar");
+    const updateTimeText = document.getElementById("updateTime");
+    const cafeSelect = document.getElementById("cafeSelect");
+
+    function renderSeats() {
+      seatMap.innerHTML = "";
+
+      seats.forEach((occupied, index) => {
+        const seat = document.createElement("div");
+        seat.classList.add("seat");
+
+        if (occupied) {
+          seat.classList.add("occupied");
+        }
+
+        if (outletSeats.includes(index + 1)) {
+          seat.classList.add("outlet");
+        }
+
+        seat.innerHTML = `
+          ${index + 1}번석
+          <br>
+          <small>${occupied ? "사용 중" : "비어 있음"}</small>
+        `;
+
+        seat.addEventListener("click", () => {
+          seats[index] = !seats[index];
+          updateAll();
+        });
+
+        seatMap.appendChild(seat);
+      });
+    }
+
+    function updateStatus() {
+      const occupiedCount = seats.filter(seat => seat).length;
+      const availableCount = totalSeatCount - occupiedCount;
+      const occupancyRate = Math.round((occupiedCount / totalSeatCount) * 100);
+
+      availableSeatsText.textContent = `${availableCount}석`;
+      occupancyBar.style.width = `${occupancyRate}%`;
+
+      if (occupancyRate === 100) {
+        crowdStatusText.textContent = "만석";
+      } else if (occupancyRate >= 75) {
+        crowdStatusText.textContent = "혼잡";
+      } else if (occupancyRate >= 40) {
+        crowdStatusText.textContent = "보통";
+      } else {
+        crowdStatusText.textContent = "여유";
+      }
+    }
+
+    function updateTime() {
+      const now = new Date();
+      const formatted = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")} ${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}:${String(now.getSeconds()).padStart(2, "0")}`;
+      updateTimeText.textContent = `마지막 업데이트: ${formatted}`;
+    }
+
+    function updateAll() {
+      renderSeats();
+      updateStatus();
+      updateTime();
+    }
+
+    function getRandomAvailableIndex() {
+      const availableIndexes = seats
+        .map((seat, index) => (!seat ? index : -1))
+        .filter(index => index !== -1);
+
+      if (availableIndexes.length === 0) return -1;
+      return availableIndexes[Math.floor(Math.random() * availableIndexes.length)];
+    }
+
+    function getRandomOccupiedIndex() {
+      const occupiedIndexes = seats
+        .map((seat, index) => (seat ? index : -1))
+        .filter(index => index !== -1);
+
+      if (occupiedIndexes.length === 0) return -1;
+      return occupiedIndexes[Math.floor(Math.random() * occupiedIndexes.length)];
+    }
+
+    document.getElementById("randomFillBtn").addEventListener("click", () => {
+      const randomIndex = getRandomAvailableIndex();
+      if (randomIndex !== -1) {
+        seats[randomIndex] = true;
+        updateAll();
+      } else {
+        alert("이미 만석입니다.");
+      }
+    });
+
+    document.getElementById("randomLeaveBtn").addEventListener("click", () => {
+      const randomIndex = getRandomOccupiedIndex();
+      if (randomIndex !== -1) {
+        seats[randomIndex] = false;
+        updateAll();
+      } else {
+        alert("현재 사용 중인 좌석이 없습니다.");
+      }
+    });
+
+    document.getElementById("resetBtn").addEventListener("click", () => {
+      seats = Array(totalSeatCount).fill(false);
+      updateAll();
+    });
+
+    cafeSelect.addEventListener("change", () => {
+      seats = Array(totalSeatCount).fill(false);
+      updateAll();
+    });
+
+    updateAll();
+  </script>
+</body>
+</html>
