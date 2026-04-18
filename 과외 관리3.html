@@ -1,0 +1,1183 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>과외 운영 분석 대시보드</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: #fffaf5;
+      color: #4b3a2f;
+    }
+    .app {
+      display: grid;
+      grid-template-columns: 290px 1fr;
+      min-height: 100vh;
+    }
+    .sidebar {
+      background: linear-gradient(180deg, #8b5e3c 0%, #a96f44 100%);
+      color: #fffaf5;
+      padding: 28px 20px;
+    }
+    .logo {
+      font-size: 24px;
+      font-weight: 800;
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+    .logo-sub {
+      color: #f7e8d7;
+      font-size: 14px;
+      margin-bottom: 28px;
+    }
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 28px;
+    }
+    .menu button {
+      border: none;
+      background: rgba(255,250,245,0.14);
+      color: #fffaf5;
+      text-align: left;
+      padding: 13px 14px;
+      border-radius: 14px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+    .menu button:hover, .menu button.active {
+      background: #f4b183;
+      color: #5a3924;
+    }
+    .sidebar-card {
+      background: rgba(255,250,245,0.14);
+      border-radius: 18px;
+      padding: 16px;
+      margin-top: 18px;
+    }
+    .sidebar-card h4 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+    .sidebar-card p {
+      margin: 0;
+      font-size: 13px;
+      line-height: 1.6;
+      color: #fff3e8;
+    }
+    .main {
+      padding: 28px;
+    }
+    .topbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+    }
+    .topbar h1 {
+      margin: 0;
+      font-size: 30px;
+      letter-spacing: -0.03em;
+      color: #6a4328;
+    }
+    .topbar p {
+      margin: 6px 0 0;
+      color: #9a7b65;
+      font-size: 14px;
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .btn {
+      border: none;
+      border-radius: 14px;
+      padding: 12px 16px;
+      font-weight: 700;
+      cursor: pointer;
+      font-size: 14px;
+    }
+    .btn-primary {
+      background: #8b5e3c;
+      color: white;
+    }
+    .btn-pink {
+      background: #f4b183;
+      color: #5a3924;
+    }
+    .btn-danger {
+      background: #d97f6c;
+      color: white;
+    }
+    .grid-stats {
+      display: grid;
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      gap: 16px;
+      margin-bottom: 22px;
+    }
+    .stat-card, .panel, .student-card {
+      background: #fffdf9;
+      border-radius: 22px;
+      box-shadow: 0 10px 30px rgba(135, 93, 60, 0.08);
+      border: 1px solid #f2e2d3;
+    }
+    .stat-card {
+      padding: 18px;
+    }
+    .stat-label {
+      color: #9a7b65;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .stat-value {
+      font-size: 28px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      color: #6a4328;
+    }
+    .stat-sub {
+      margin-top: 8px;
+      font-size: 13px;
+      color: #b08d75;
+    }
+    .content-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .analytics-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+      margin-bottom: 18px;
+    }
+    .panel {
+      padding: 20px;
+    }
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+    }
+    .panel-header h2 {
+      margin: 0;
+      font-size: 20px;
+      color: #6a4328;
+    }
+    .panel-header small {
+      color: #b08d75;
+      font-size: 12px;
+    }
+    .search-wrap {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+    .search-wrap input, .search-wrap select, .notes textarea, .student-form input, .student-form select, .student-form textarea {
+      border: 1px solid #ecd7c5;
+      border-radius: 14px;
+      padding: 11px 13px;
+      font-size: 14px;
+      background: #fff;
+      color: #4b3a2f;
+    }
+    .search-wrap input {
+      flex: 1;
+      min-width: 200px;
+    }
+    .student-list {
+      display: grid;
+      gap: 14px;
+    }
+    .student-card {
+      padding: 18px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
+    }
+    .student-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 12px 24px rgba(135, 93, 60, 0.1);
+    }
+    .student-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      align-items: flex-start;
+      margin-bottom: 12px;
+    }
+    .student-name {
+      font-size: 18px;
+      font-weight: 800;
+      margin-bottom: 4px;
+      color: #6a4328;
+    }
+    .student-meta {
+      font-size: 13px;
+      color: #9a7b65;
+      line-height: 1.5;
+    }
+    .badge-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+    }
+    .badge {
+      padding: 7px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+    .badge-blue { background: #e4efe9; color: #486e5d; }
+    .badge-pink { background: #ffe5d0; color: #a95f2f; }
+    .badge-yellow { background: #fff1c9; color: #9a6c00; }
+    .badge-green { background: #e7f4df; color: #557a32; }
+    .badge-red { background: #fde3dc; color: #b55a46; }
+    .student-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 10px;
+      margin: 14px 0;
+    }
+    .mini-box, .metric-box {
+      background: #fdf4ea;
+      border-radius: 16px;
+      padding: 12px;
+      border: 1px solid #f2e2d3;
+    }
+    .mini-title, .metric-title {
+      font-size: 12px;
+      color: #9a7b65;
+      margin-bottom: 6px;
+    }
+    .mini-content, .metric-value {
+      font-size: 14px;
+      font-weight: 700;
+      line-height: 1.5;
+      color: #5d402b;
+    }
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .metric-value.large {
+      font-size: 24px;
+      font-weight: 800;
+    }
+    .progress-wrap {
+      margin-top: 8px;
+    }
+    .progress-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 13px;
+      color: #9a7b65;
+      margin-bottom: 6px;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 10px;
+      background: #f1dfd0;
+      border-radius: 999px;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      border-radius: 999px;
+      background: linear-gradient(90deg, #d58a5a, #f4b183);
+    }
+    .list-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 14px;
+    }
+    .list-table th, .list-table td {
+      text-align: left;
+      padding: 12px 10px;
+      border-bottom: 1px solid #f4e7db;
+      vertical-align: top;
+    }
+    .list-table th {
+      color: #9a7b65;
+      font-size: 12px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .notes { margin-top: 16px; }
+    .notes textarea {
+      width: 100%;
+      min-height: 140px;
+      resize: vertical;
+    }
+    .student-form {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+      margin-top: 14px;
+    }
+    .student-form .full { grid-column: 1 / -1; }
+    .student-form textarea {
+      min-height: 90px;
+      resize: vertical;
+    }
+    .bar-chart {
+      display: flex;
+      align-items: end;
+      gap: 16px;
+      height: 220px;
+      padding-top: 12px;
+    }
+    .bar-item {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+    .bar {
+      width: 100%;
+      max-width: 56px;
+      border-radius: 14px 14px 6px 6px;
+      background: linear-gradient(180deg, #f4b183, #c97d4d);
+      transition: height 0.25s ease;
+    }
+    .bar-label {
+      font-size: 12px;
+      color: #9a7b65;
+    }
+    .bar-value {
+      font-size: 12px;
+      color: #6a4328;
+      font-weight: 700;
+    }
+    .donut-wrap {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      flex-wrap: wrap;
+    }
+    .donut {
+      width: 180px;
+      height: 180px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+      flex-shrink: 0;
+      transition: background 0.25s ease;
+    }
+    .donut::after {
+      content: "";
+      position: absolute;
+      width: 96px;
+      height: 96px;
+      border-radius: 50%;
+      background: #fffdf9;
+      border: 1px solid #f2e2d3;
+    }
+    .donut-center {
+      position: relative;
+      z-index: 1;
+      text-align: center;
+    }
+    .donut-center strong {
+      display: block;
+      font-size: 26px;
+      color: #6a4328;
+    }
+    .legend {
+      display: grid;
+      gap: 10px;
+      min-width: 160px;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #6a4328;
+      font-size: 14px;
+      justify-content: space-between;
+    }
+    .legend-color {
+      width: 12px;
+      height: 12px;
+      border-radius: 999px;
+      flex-shrink: 0;
+    }
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .insight-list {
+      display: grid;
+      gap: 10px;
+    }
+    .insight-item {
+      padding: 12px 14px;
+      background: #fdf4ea;
+      border: 1px solid #f2e2d3;
+      border-radius: 16px;
+      font-size: 14px;
+      color: #6a4328;
+      line-height: 1.6;
+    }
+    .empty-state {
+      padding: 28px;
+      text-align: center;
+      color: #9a7b65;
+      background: #fff7ef;
+      border: 1px dashed #ecd7c5;
+      border-radius: 18px;
+    }
+    .footer-note {
+      margin-top: 18px;
+      color: #9a7b65;
+      font-size: 13px;
+      text-align: center;
+    }
+    .hidden { display: none !important; }
+    @media (max-width: 1100px) {
+      .grid-stats, .content-grid, .analytics-grid, .student-grid, .student-form, .metric-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+      .content-grid, .analytics-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+    @media (max-width: 820px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { padding-bottom: 10px; }
+      .grid-stats, .student-grid, .student-form, .metric-grid {
+        grid-template-columns: 1fr;
+      }
+      .topbar { align-items: flex-start; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">Tutor Board</div>
+      <div class="logo-sub">과외 선생님용 운영 분석 페이지</div>
+
+      <div class="menu">
+        <button class="active" data-view="dashboard">🏠 대시보드</button>
+        <button data-view="students">👩‍🎓 학생 목록</button>
+        <button data-view="schedule">📅 수업 일정</button>
+        <button data-view="records">📝 수업 기록</button>
+        <button data-view="homework">📚 숙제 관리</button>
+        <button data-view="finance">💳 수업료</button>
+      </div>
+
+      <div class="sidebar-card">
+        <h4>오늘 해야 할 일</h4>
+        <p id="sidebarTodo">학생 데이터에 맞춰 자동으로 표시됩니다.</p>
+      </div>
+
+      <div class="sidebar-card">
+        <h4>이번 달 운영 포인트</h4>
+        <p id="sidebarPoint">효율이 높은 시간대와 수익성이 높은 학생을 함께 확인해 보세요.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h1>과외 운영 분석 대시보드</h1>
+          <p>학생 관리와 함께 매출, 유지율, 시간 활용도를 같이 확인하는 경영형 페이지입니다.</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="scrollToFormBtn">+ 새 학생 추가</button>
+          <button class="btn btn-pink" id="resetSampleBtn">샘플 데이터 복원</button>
+        </div>
+      </div>
+
+      <section class="grid-stats view-section" data-section="dashboard students finance">
+        <div class="stat-card">
+          <div class="stat-label">이번 달 총매출</div>
+          <div class="stat-value" id="totalRevenue">0원</div>
+          <div class="stat-sub" id="revenueSub">학생 데이터 기준 자동 계산</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">학생 유지율</div>
+          <div class="stat-value" id="retentionRate">0%</div>
+          <div class="stat-sub" id="retentionSub">장기 유지 학생 비율</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">실질 평균 시급</div>
+          <div class="stat-value" id="avgHourlyRate">0원</div>
+          <div class="stat-sub" id="hourlySub">수업+준비+이동 시간 반영</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-label">학생 성과 달성률</div>
+          <div class="stat-value" id="avgProgress">0%</div>
+          <div class="stat-sub" id="progressSub">목표 점수/등급 기준 평균</div>
+        </div>
+      </section>
+
+      <section class="analytics-grid view-section" data-section="dashboard finance">
+        <section class="panel">
+          <div class="panel-header">
+            <h2>월별 매출 추이</h2>
+            <small>등록 학생 기준 단순 예측</small>
+          </div>
+          <div class="metric-grid">
+            <div class="metric-box">
+              <div class="metric-title">평균 월매출</div>
+              <div class="metric-value large" id="avgMonthlyRevenueMetric">0원</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-title">최고 매출 월</div>
+              <div class="metric-value large" id="bestMonthMetric">-</div>
+            </div>
+            <div class="metric-box">
+              <div class="metric-title">증가율</div>
+              <div class="metric-value large" id="growthMetric">0%</div>
+            </div>
+          </div>
+          <div class="bar-chart" id="revenueChart"></div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>과목별 매출 비중</h2>
+            <small>현재 등록 학생 기준</small>
+          </div>
+          <div class="donut-wrap">
+            <div class="donut" id="subjectDonut">
+              <div class="donut-center">
+                <strong>100%</strong>
+                <span style="font-size:12px;color:#9a7b65;">총 매출 구성</span>
+              </div>
+            </div>
+            <div class="legend" id="subjectLegend"></div>
+          </div>
+        </section>
+      </section>
+
+      <section class="content-grid view-section" data-section="dashboard students schedule records">
+        <div class="panel" id="studentsPanel">
+          <div class="panel-header">
+            <h2>학생 목록 / 수익성 분석</h2>
+          </div>
+
+          <div class="search-wrap" style="margin-bottom:16px;">
+            <input type="text" id="searchInput" placeholder="학생 이름 또는 과목 검색" />
+            <select id="subjectFilter">
+              <option value="all">전체 과목</option>
+              <option value="영어">영어</option>
+              <option value="수학">수학</option>
+              <option value="국어">국어</option>
+              <option value="과학">과학</option>
+              <option value="사회">사회</option>
+            </select>
+            <select id="statusFilter">
+              <option value="all">전체 상태</option>
+              <option value="homeworkIncomplete">숙제 미완료</option>
+              <option value="paymentPending">입금 대기</option>
+              <option value="todayClass">오늘 수업</option>
+            </select>
+          </div>
+
+          <div class="student-list" id="studentList"></div>
+        </div>
+
+        <div style="display:grid; gap:18px;" id="rightColumnPanels">
+          <section class="panel" id="schedulePanel">
+            <div class="panel-header">
+              <h2>오늘 수업 일정</h2>
+            </div>
+            <table class="list-table">
+              <thead>
+                <tr>
+                  <th>시간</th>
+                  <th>학생</th>
+                  <th>과목</th>
+                  <th>장소</th>
+                </tr>
+              </thead>
+              <tbody id="scheduleTableBody"></tbody>
+            </table>
+          </section>
+
+          <section class="panel" id="insightPanel">
+            <div class="panel-header">
+              <h2>운영 인사이트</h2>
+            </div>
+            <div class="insight-list" id="insightList"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="content-grid view-section" data-section="dashboard homework finance records">
+        <section class="panel" id="efficiencyPanel">
+          <div class="panel-header">
+            <h2>숙제 / 수업료 / 운영 효율 체크</h2>
+          </div>
+          <table class="list-table">
+            <thead>
+              <tr>
+                <th>학생</th>
+                <th>숙제</th>
+                <th>제출 상태</th>
+                <th>수업료</th>
+                <th>준비+이동</th>
+              </tr>
+            </thead>
+            <tbody id="efficiencyTableBody"></tbody>
+          </table>
+        </section>
+
+        <section class="panel" id="memoPanel">
+          <div class="panel-header">
+            <h2>경영 메모 / 상담 기록</h2>
+          </div>
+          <div class="notes">
+            <textarea id="managerMemo" placeholder="학생 상담 내용, 학부모 요청 사항, 다음 수업 준비 메모 등을 적어두세요."></textarea>
+          </div>
+          <div style="margin-top:12px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-primary" id="saveMemoBtn">메모 저장</button>
+          </div>
+        </section>
+      </section>
+
+      <section class="panel view-section" data-section="dashboard students" id="formSection">
+        <div class="panel-header">
+          <h2>새 학생 등록 / 운영 데이터 입력</h2>
+        </div>
+        <form class="student-form" id="studentForm">
+          <input type="text" id="studentName" placeholder="학생 이름" required />
+          <input type="text" id="studentGrade" placeholder="학교 / 학년" required />
+          <select id="studentSubject" required>
+            <option value="">과목 선택</option>
+            <option>영어</option>
+            <option>수학</option>
+            <option>국어</option>
+            <option>과학</option>
+            <option>사회</option>
+          </select>
+          <select id="studentMode" required>
+            <option value="">수업 방식</option>
+            <option>대면</option>
+            <option>비대면</option>
+          </select>
+          <input type="text" id="studentPhone" placeholder="연락처" />
+          <input type="text" id="parentPhone" placeholder="학부모 연락처" />
+          <input type="text" id="studentSchedule" placeholder="수업 요일 / 시간 예: 화/목 7:00 PM" class="full" required />
+          <input type="text" id="studentLocation" placeholder="수업 장소 또는 비대면" required />
+          <input type="number" id="monthlyRevenue" placeholder="예상 월 매출 (숫자만)" min="0" required />
+          <input type="number" id="extraTime" placeholder="주간 준비+이동 시간 (분)" min="0" required />
+          <input type="text" id="recentTopic" placeholder="최근 진도" required />
+          <input type="text" id="homework" placeholder="최근 숙제" required />
+          <select id="homeworkStatus" required>
+            <option value="">숙제 상태</option>
+            <option value="완료">완료</option>
+            <option value="미완료">미완료</option>
+          </select>
+          <select id="paymentStatus" required>
+            <option value="">수업료 상태</option>
+            <option value="완료">완료</option>
+            <option value="미입금">미입금</option>
+          </select>
+          <input type="text" id="nextClass" placeholder="다음 수업 예: 4/19 오후 7:00" required />
+          <input type="number" id="progress" placeholder="목표 달성도 (0~100)" min="0" max="100" required />
+          <input type="number" id="monthsActive" placeholder="수강 개월 수" min="0" required />
+          <textarea class="full" id="studentNote" placeholder="목표, 약점, 참고사항"></textarea>
+          <div class="full" style="display:flex; gap:10px; flex-wrap:wrap;">
+            <button type="submit" class="btn btn-primary">학생 저장</button>
+            <button type="reset" class="btn">초기화</button>
+          </div>
+        </form>
+      </section>
+
+      <div class="footer-note">브라우저의 localStorage에 저장됩니다. 같은 브라우저에서는 새로고침 후에도 데이터가 유지됩니다.</div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'tutorBoardStudentsV2';
+    const MEMO_KEY = 'tutorBoardMemoV2';
+    const SAMPLE_STUDENTS = [
+      {
+        id: crypto.randomUUID(),
+        name: '김민지',
+        grade: '고1',
+        subject: '영어',
+        mode: '대면',
+        phone: '010-1111-2222',
+        parentPhone: '010-9999-1111',
+        schedule: '화/목 7:00 PM',
+        location: '학생 집',
+        monthlyRevenue: 400000,
+        extraTime: 40,
+        recentTopic: '관계대명사 + 독해 3지문',
+        homework: '단어 1~40 / 문법 워크북 2p',
+        homeworkStatus: '미완료',
+        paymentStatus: '완료',
+        nextClass: '4/17 오후 7:00',
+        progress: 78,
+        monthsActive: 7,
+        note: '시험 전 단어 확인 필수'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: '이준호',
+        grade: '중3',
+        subject: '수학',
+        mode: '비대면',
+        phone: '010-2222-3333',
+        parentPhone: '010-9999-2222',
+        schedule: '수/토 6:00 PM',
+        location: '비대면',
+        monthlyRevenue: 360000,
+        extraTime: 20,
+        recentTopic: '이차방정식 응용',
+        homework: '쎈 B단계 12문제',
+        homeworkStatus: '완료',
+        paymentStatus: '완료',
+        nextClass: '4/18 오후 6:00',
+        progress: 64,
+        monthsActive: 4,
+        note: '비대면이라 효율이 높고 장기 유지 가능성 높음'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: '박서윤',
+        grade: '고2',
+        subject: '영어',
+        mode: '대면',
+        phone: '010-3333-4444',
+        parentPhone: '010-9999-3333',
+        schedule: '월/금 8:00 PM',
+        location: '스터디카페',
+        monthlyRevenue: 440000,
+        extraTime: 80,
+        recentTopic: '모의고사 독해 4회',
+        homework: '오답 정리 + 해석 복습',
+        homeworkStatus: '완료',
+        paymentStatus: '미입금',
+        nextClass: '4/19 오후 8:00',
+        progress: 82,
+        monthsActive: 8,
+        note: '점수 상승 폭은 좋지만 이동 시간이 김'
+      },
+      {
+        id: crypto.randomUUID(),
+        name: '최하린',
+        grade: '중2',
+        subject: '국어',
+        mode: '비대면',
+        phone: '010-4444-5555',
+        parentPhone: '010-9999-4444',
+        schedule: '금 5:00 PM',
+        location: '비대면',
+        monthlyRevenue: 280000,
+        extraTime: 15,
+        recentTopic: '비문학 독해 전략',
+        homework: '지문 2개 요약',
+        homeworkStatus: '완료',
+        paymentStatus: '완료',
+        nextClass: '4/17 오후 5:00',
+        progress: 71,
+        monthsActive: 2,
+        note: '꾸준히만 하면 성장 가능성 높음'
+      }
+    ];
+
+    let students = loadStudents();
+    let currentView = 'dashboard';
+
+    const studentListEl = document.getElementById('studentList');
+    const scheduleTableBodyEl = document.getElementById('scheduleTableBody');
+    const efficiencyTableBodyEl = document.getElementById('efficiencyTableBody');
+    const insightListEl = document.getElementById('insightList');
+    const revenueChartEl = document.getElementById('revenueChart');
+    const subjectLegendEl = document.getElementById('subjectLegend');
+    const subjectDonutEl = document.getElementById('subjectDonut');
+    const memoEl = document.getElementById('managerMemo');
+    const formEl = document.getElementById('studentForm');
+
+    document.getElementById('scrollToFormBtn').addEventListener('click', () => {
+      switchView('students');
+      document.getElementById('formSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('resetSampleBtn').addEventListener('click', () => {
+      if (!confirm('현재 데이터를 지우고 샘플 데이터로 복원할까요?')) return;
+      students = structuredClone(SAMPLE_STUDENTS);
+      saveStudents();
+      renderAll();
+    });
+
+    document.getElementById('saveMemoBtn').addEventListener('click', () => {
+      localStorage.setItem(MEMO_KEY, memoEl.value);
+      alert('메모를 저장했어요.');
+    });
+
+    memoEl.value = localStorage.getItem(MEMO_KEY) || '김민지: 시험 전 단어 확인 필수. 최근 과제 미완료가 늘어서 관리 필요.\n이준호: 준비 시간이 짧고 비대면이라 효율이 높음. 장기 유지 가능성 높음.\n박서윤: 점수 상승 폭은 좋지만 이동 시간 대비 수익성은 재검토 필요.\n다음 달 목표: 금요일 비대면 학생 1명 추가 모집.';
+
+    formEl.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const newStudent = {
+        id: crypto.randomUUID(),
+        name: document.getElementById('studentName').value.trim(),
+        grade: document.getElementById('studentGrade').value.trim(),
+        subject: document.getElementById('studentSubject').value,
+        mode: document.getElementById('studentMode').value,
+        phone: document.getElementById('studentPhone').value.trim(),
+        parentPhone: document.getElementById('parentPhone').value.trim(),
+        schedule: document.getElementById('studentSchedule').value.trim(),
+        location: document.getElementById('studentLocation').value.trim(),
+        monthlyRevenue: Number(document.getElementById('monthlyRevenue').value),
+        extraTime: Number(document.getElementById('extraTime').value),
+        recentTopic: document.getElementById('recentTopic').value.trim(),
+        homework: document.getElementById('homework').value.trim(),
+        homeworkStatus: document.getElementById('homeworkStatus').value,
+        paymentStatus: document.getElementById('paymentStatus').value,
+        nextClass: document.getElementById('nextClass').value.trim(),
+        progress: Number(document.getElementById('progress').value),
+        monthsActive: Number(document.getElementById('monthsActive').value),
+        note: document.getElementById('studentNote').value.trim()
+      };
+
+      students.unshift(newStudent);
+      saveStudents();
+      formEl.reset();
+      renderAll();
+      switchView('students');
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderStudentList);
+    document.getElementById('subjectFilter').addEventListener('change', renderStudentList);
+    document.getElementById('statusFilter').addEventListener('change', renderStudentList);
+
+    document.querySelectorAll('.menu button').forEach(button => {
+      button.addEventListener('click', () => {
+        switchView(button.dataset.view);
+      });
+    });
+
+    function loadStudents() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return structuredClone(SAMPLE_STUDENTS);
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) && parsed.length ? parsed : structuredClone(SAMPLE_STUDENTS);
+      } catch {
+        return structuredClone(SAMPLE_STUDENTS);
+      }
+    }
+
+    function saveStudents() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(students));
+    }
+
+    function formatWon(value) {
+      return `${Number(value || 0).toLocaleString('ko-KR')}원`;
+    }
+
+    function getHourlyRate(student) {
+      const totalHours = 8 + (Number(student.extraTime) * 4 / 60);
+      if (!totalHours) return 0;
+      return Math.round(Number(student.monthlyRevenue) / totalHours);
+    }
+
+    function getRetentionLabel(monthsActive) {
+      if (monthsActive >= 6) return '높음';
+      if (monthsActive >= 3) return '보통';
+      return '낮음';
+    }
+
+    function getBadgeClass(type, value) {
+      if (type === 'homework') return value === '완료' ? 'badge-green' : 'badge-yellow';
+      if (type === 'payment') return value === '완료' ? 'badge-green' : 'badge-red';
+      if (type === 'class') return 'badge-pink';
+      return 'badge-blue';
+    }
+
+    function getTodayClassStudents() {
+      return students.filter(student => /4\/17|금|오늘/i.test(student.nextClass) || /금/.test(student.schedule));
+    }
+
+    function filterStudents() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const subject = document.getElementById('subjectFilter').value;
+      const status = document.getElementById('statusFilter').value;
+
+      return students.filter(student => {
+        const queryMatch = !query || student.name.toLowerCase().includes(query) || student.subject.toLowerCase().includes(query);
+        const subjectMatch = subject === 'all' || student.subject === subject;
+        const statusMatch = (() => {
+          if (status === 'all') return true;
+          if (status === 'homeworkIncomplete') return student.homeworkStatus === '미완료';
+          if (status === 'paymentPending') return student.paymentStatus !== '완료';
+          if (status === 'todayClass') return getTodayClassStudents().some(s => s.id === student.id);
+          return true;
+        })();
+        return queryMatch && subjectMatch && statusMatch;
+      });
+    }
+
+    function renderStudentList() {
+      const filtered = filterStudents();
+      if (!filtered.length) {
+        studentListEl.innerHTML = '<div class="empty-state">조건에 맞는 학생이 없어요.</div>';
+        return;
+      }
+
+      studentListEl.innerHTML = filtered.map(student => {
+        const hourlyRate = getHourlyRate(student);
+        const retention = getRetentionLabel(student.monthsActive);
+        const today = getTodayClassStudents().some(s => s.id === student.id);
+        return `
+          <article class="student-card">
+            <div class="student-top">
+              <div>
+                <div class="student-name">${student.name}</div>
+                <div class="student-meta">${student.grade} · ${student.subject} · ${student.mode} 수업<br>${student.schedule}</div>
+              </div>
+              <div class="badge-group">
+                ${today ? `<span class="badge badge-pink">오늘 수업</span>` : ''}
+                <span class="badge ${getBadgeClass('homework', student.homeworkStatus)}">숙제 ${student.homeworkStatus}</span>
+                <span class="badge ${getBadgeClass('payment', student.paymentStatus)}">${student.paymentStatus === '완료' ? '입금 완료' : '입금 대기'}</span>
+              </div>
+            </div>
+
+            <div class="student-grid">
+              <div class="mini-box">
+                <div class="mini-title">다음 수업</div>
+                <div class="mini-content">${student.nextClass}</div>
+              </div>
+              <div class="mini-box">
+                <div class="mini-title">최근 진도</div>
+                <div class="mini-content">${student.recentTopic}</div>
+              </div>
+              <div class="mini-box">
+                <div class="mini-title">최근 숙제</div>
+                <div class="mini-content">${student.homework}</div>
+              </div>
+              <div class="mini-box">
+                <div class="mini-title">월 매출 / 실질 시급</div>
+                <div class="mini-content">${formatWon(student.monthlyRevenue)} / ${formatWon(hourlyRate)}</div>
+              </div>
+            </div>
+
+            <div class="progress-wrap">
+              <div class="progress-label">
+                <span>목표 달성도 / 유지 가능성</span>
+                <strong>${student.progress}% / ${retention}</strong>
+              </div>
+              <div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, student.progress))}%"></div></div>
+            </div>
+
+            <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;">
+              <button class="btn btn-danger" onclick="deleteStudent('${student.id}')">삭제</button>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    function renderSchedule() {
+      const todayClasses = getTodayClassStudents();
+      if (!todayClasses.length) {
+        scheduleTableBodyEl.innerHTML = '<tr><td colspan="4"><div class="empty-state">오늘 수업이 없어요.</div></td></tr>';
+        return;
+      }
+      scheduleTableBodyEl.innerHTML = todayClasses.map(student => {
+        const timeMatch = student.nextClass.match(/오전\s*\d+:\d+|오후\s*\d+:\d+|\d+:\d+\s*[AP]M/i);
+        const displayTime = timeMatch ? timeMatch[0] : student.nextClass;
+        return `
+          <tr>
+            <td>${displayTime}</td>
+            <td>${student.name}</td>
+            <td>${student.subject}</td>
+            <td>${student.location}</td>
+          </tr>
+        `;
+      }).join('');
+    }
+
+    function renderEfficiencyTable() {
+      if (!students.length) {
+        efficiencyTableBodyEl.innerHTML = '<tr><td colspan="5"><div class="empty-state">등록된 학생이 없어요.</div></td></tr>';
+        return;
+      }
+      efficiencyTableBodyEl.innerHTML = students.map(student => `
+        <tr>
+          <td>${student.name}</td>
+          <td>${student.homework}</td>
+          <td><span class="badge ${getBadgeClass('homework', student.homeworkStatus)}">${student.homeworkStatus}</span></td>
+          <td><span class="badge ${getBadgeClass('payment', student.paymentStatus)}">${student.paymentStatus}</span></td>
+          <td>주 ${student.extraTime}분</td>
+        </tr>
+      `).join('');
+    }
+
+    function renderSummaryCards() {
+      const totalRevenue = students.reduce((sum, s) => sum + Number(s.monthlyRevenue), 0);
+      const retentionRate = students.length ? Math.round((students.filter(s => s.monthsActive >= 3).length / students.length) * 100) : 0;
+      const avgHourlyRate = students.length ? Math.round(students.reduce((sum, s) => sum + getHourlyRate(s), 0) / students.length) : 0;
+      const avgProgress = students.length ? Math.round(students.reduce((sum, s) => sum + Number(s.progress), 0) / students.length) : 0;
+
+      document.getElementById('totalRevenue').textContent = formatWon(totalRevenue);
+      document.getElementById('retentionRate').textContent = `${retentionRate}%`;
+      document.getElementById('avgHourlyRate').textContent = formatWon(avgHourlyRate);
+      document.getElementById('avgProgress').textContent = `${avgProgress}%`;
+
+      document.getElementById('revenueSub').textContent = `학생 ${students.length}명 기준`;
+      document.getElementById('retentionSub').textContent = `3개월 이상 학생 ${students.filter(s => s.monthsActive >= 3).length}명`;
+      document.getElementById('hourlySub').textContent = `최고 ${formatWon(Math.max(0, ...students.map(getHourlyRate)))}`;
+      document.getElementById('progressSub').textContent = `최고 ${Math.max(0, ...students.map(s => Number(s.progress)))}%`;
+    }
+
+    function renderRevenueChart() {
+      const currentRevenue = students.reduce((sum, s) => sum + Number(s.monthlyRevenue), 0);
+      const months = ['11월', '12월', '1월', '2월', '3월', '4월'];
+      const factors = [0.76, 0.81, 0.87, 0.93, 1.04, 1];
+      const values = factors.map(f => Math.round(currentRevenue * f));
+      const maxValue = Math.max(...values, 1);
+      revenueChartEl.innerHTML = values.map((value, index) => `
+        <div class="bar-item">
+          <div class="bar-value">${Math.round(value / 10000) / 100}M</div>
+          <div class="bar" style="height:${Math.max(18, (value / maxValue) * 100)}%"></div>
+          <div class="bar-label">${months[index]}</div>
+        </div>
+      `).join('');
+
+      const average = Math.round(values.reduce((a, b) => a + b, 0) / values.length);
+      const maxIndex = values.indexOf(Math.max(...values));
+      const growth = values[0] ? Math.round(((values[values.length - 1] - values[0]) / values[0]) * 100) : 0;
+
+      document.getElementById('avgMonthlyRevenueMetric').textContent = formatWon(average);
+      document.getElementById('bestMonthMetric').textContent = months[maxIndex];
+      document.getElementById('growthMetric').textContent = `${growth}%`;
+    }
+
+    function renderSubjectChart() {
+      const subjectMap = {};
+      students.forEach(student => {
+        subjectMap[student.subject] = (subjectMap[student.subject] || 0) + Number(student.monthlyRevenue);
+      });
+      const entries = Object.entries(subjectMap);
+      const total = entries.reduce((sum, [, value]) => sum + value, 0) || 1;
+      const colors = ['#d58a5a', '#f4b183', '#f7d7b8', '#d9b38c', '#c97d4d'];
+
+      if (!entries.length) {
+        subjectLegendEl.innerHTML = '<div class="empty-state">데이터가 없어요.</div>';
+        subjectDonutEl.style.background = '#f7e8d7';
+        return;
+      }
+
+      let currentPercent = 0;
+      const gradientParts = entries.map(([subject, value], index) => {
+        const percent = Math.round((value / total) * 100);
+        const start = currentPercent;
+        currentPercent += percent;
+        return `${colors[index % colors.length]} ${start}% ${currentPercent}%`;
+      });
+      subjectDonutEl.style.background = `conic-gradient(${gradientParts.join(', ')})`;
+
+      subjectLegendEl.innerHTML = entries.map(([subject, value], index) => {
+        const percent = Math.round((value / total) * 100);
+        return `
+          <div class="legend-item">
+            <div class="legend-left"><span class="legend-color" style="background:${colors[index % colors.length]};"></span>${subject}</div>
+            <strong>${percent}%</strong>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function renderInsights() {
+      if (!students.length) {
+        insightListEl.innerHTML = '<div class="empty-state">학생을 추가하면 운영 인사이트가 표시돼요.</div>';
+        return;
+      }
+
+      const subjectRevenue = {};
+      students.forEach(s => {
+        subjectRevenue[s.subject] = (subjectRevenue[s.subject] || 0) + Number(s.monthlyRevenue);
+      });
+      const topSubject = Object.entries(subjectRevenue).sort((a, b) => b[1] - a[1])[0];
+      const lowEfficiencyStudent = [...students].sort((a, b) => getHourlyRate(a) - getHourlyRate(b))[0];
+      const highEfficiencyStudent = [...students].sort((a, b) => getHourlyRate(b) - getHourlyRate(a))[0];
+      const homeworkStrong = students.filter(s => s.homeworkStatus === '완료' && s.progress >= 70).length;
+      const pendingPayments = students.filter(s => s.paymentStatus !== '완료').length;
+
+      const insights = [
+        `${topSubject ? `${topSubject[0]} 과목이 현재 매출 비중이 가장 커서 신규 모집도 ${topSubject[0]} 중심으로 잡는 것이 유리해요.` : '과목별 매출 비중을 볼 수 있어요.'}`,
+        `${highEfficiencyStudent.name} 학생은 실질 시급이 ${formatWon(getHourlyRate(highEfficiencyStudent))}으로 가장 높아 효율이 좋아요.`,
+        `${lowEfficiencyStudent.name} 학생은 준비·이동 시간을 줄이면 수익성이 더 좋아질 가능성이 커요.`,
+        `숙제 완료이면서 목표 달성도 70% 이상인 학생이 ${homeworkStrong}명이에요. 숙제 관리가 성과와 연결되는 편이에요.`,
+        pendingPayments > 0 ? `현재 미입금 학생이 ${pendingPayments}명 있어요. 월말 정산 체크가 필요해요.` : '현재 모든 학생의 수업료가 입금 완료 상태예요.'
+      ];
+
+      insightListEl.innerHTML = insights.map(text => `<div class="insight-item">${text}</div>`).join('');
+      document.getElementById('sidebarTodo').innerHTML = `• 숙제 미완료 ${students.filter(s => s.homeworkStatus === '미완료').length}명 확인<br>• 미입금 ${pendingPayments}명 체크<br>• 오늘 수업 ${getTodayClassStudents().length}건 준비`;
+      document.getElementById('sidebarPoint').textContent = `${highEfficiencyStudent.subject} / ${highEfficiencyStudent.mode} 수업 조합의 효율이 가장 좋게 나타나요.`;
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.menu button').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.view === view);
+      });
+
+      document.querySelectorAll('.view-section').forEach(section => {
+        const targets = section.dataset.section.split(' ');
+        section.classList.toggle('hidden', !(targets.includes(view) || view === 'dashboard' && targets.includes('dashboard')));
+      });
+
+      // 상세 패널 조정
+      document.getElementById('studentsPanel').classList.toggle('hidden', view === 'schedule');
+      document.getElementById('schedulePanel').classList.toggle('hidden', !(view === 'dashboard' || view === 'schedule'));
+      document.getElementById('insightPanel').classList.toggle('hidden', !(view === 'dashboard' || view === 'records' || view === 'students'));
+      document.getElementById('memoPanel').classList.toggle('hidden', !(view === 'dashboard' || view === 'finance' || view === 'records'));
+      document.getElementById('efficiencyPanel').classList.toggle('hidden', !(view === 'dashboard' || view === 'homework' || view === 'finance'));
+    }
+
+    function renderAll() {
+      renderSummaryCards();
+      renderRevenueChart();
+      renderSubjectChart();
+      renderStudentList();
+      renderSchedule();
+      renderEfficiencyTable();
+      renderInsights();
+      switchView(currentView);
+    }
+
+    function deleteStudent(id) {
+      const target = students.find(student => student.id === id);
+      if (!target) return;
+      if (!confirm(`${target.name} 학생을 삭제할까요?`)) return;
+      students = students.filter(student => student.id !== id);
+      saveStudents();
+      renderAll();
+    }
+
+    window.deleteStudent = deleteStudent;
+
+    renderAll();
+  </script>
+</body>
+</html>
