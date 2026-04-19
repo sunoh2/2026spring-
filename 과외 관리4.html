@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>과외 학생 관리 대시보드</title>
+  <style>
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; background: #fffaf5; color: #4b3a2f; }
+    .app { display: grid; grid-template-columns: 290px 1fr; min-height: 100vh; }
+    .sidebar { background: linear-gradient(180deg, #8b5e3c 0%, #a96f44 100%); color: #fffaf5; padding: 28px 20px; }
+    .logo { font-size: 24px; font-weight: 800; margin-bottom: 8px; }
+    .logo-sub { color: #f7e8d7; font-size: 14px; margin-bottom: 28px; }
+    .menu { display: flex; flex-direction: column; gap: 10px; margin-bottom: 28px; }
+    .menu button { border: none; background: rgba(255,250,245,0.14); color: #fffaf5; text-align: left; padding: 13px 14px; border-radius: 14px; font-size: 14px; cursor: pointer; }
+    .menu button.active, .menu button:hover { background: #f4b183; color: #5a3924; }
+    .sidebar-card { background: rgba(255,250,245,0.14); border-radius: 18px; padding: 16px; margin-top: 18px; }
+    .sidebar-card h4 { margin: 0 0 10px; font-size: 14px; }
+    .sidebar-card p { margin: 0; font-size: 13px; line-height: 1.6; color: #fff3e8; }
+    .main { padding: 28px; }
+    .topbar { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .topbar h1 { margin: 0; font-size: 30px; color: #6a4328; }
+    .topbar p { margin: 6px 0 0; color: #9a7b65; font-size: 14px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn { border: none; border-radius: 14px; padding: 11px 15px; font-weight: 700; cursor: pointer; font-size: 14px; }
+    .btn-primary { background: #8b5e3c; color: white; }
+    .btn-secondary { background: #f4b183; color: #5a3924; }
+    .btn-danger { background: #d97f6c; color: white; }
+    .btn-muted { background: #efe0d1; color: #6a4328; }
+    .panel, .student-card, .stat-card { background: #fffdf9; border-radius: 22px; box-shadow: 0 10px 30px rgba(135, 93, 60, 0.08); border: 1px solid #f2e2d3; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .stat-card { padding: 18px; }
+    .stat-label { color: #9a7b65; font-size: 13px; margin-bottom: 10px; }
+    .stat-value { font-size: 28px; font-weight: 800; color: #6a4328; }
+    .stat-sub { margin-top: 8px; font-size: 13px; color: #b08d75; }
+    .panel { padding: 20px; margin-bottom: 18px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .panel-header h2, .panel-header h3 { margin: 0; font-size: 20px; color: #6a4328; }
+    .search-wrap, .toolbar { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+    input, select, textarea { border: 1px solid #ecd7c5; border-radius: 14px; padding: 11px 13px; font-size: 14px; background: #fff; color: #4b3a2f; width: 100%; }
+    textarea { resize: vertical; min-height: 110px; }
+    .student-list { display: grid; gap: 14px; }
+    .student-card { padding: 18px; }
+    .student-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
+    .student-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: #6a4328; }
+    .student-meta { font-size: 13px; color: #9a7b65; line-height: 1.5; }
+    .badge-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .badge { padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .badge-yellow { background: #fff1c9; color: #9a6c00; }
+    .badge-green { background: #e7f4df; color: #557a32; }
+    .badge-red { background: #fde3dc; color: #b55a46; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; }
+    .mini-box, .detail-box { background: #fdf4ea; border-radius: 16px; padding: 12px; border: 1px solid #f2e2d3; }
+    .mini-title, .detail-title { font-size: 12px; color: #9a7b65; margin-bottom: 6px; }
+    .mini-content, .detail-content { font-size: 14px; font-weight: 700; line-height: 1.5; color: #5d402b; }
+    .progress-wrap { margin-top: 10px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 13px; color: #9a7b65; margin-bottom: 6px; }
+    .progress-bar { width: 100%; height: 10px; background: #f1dfd0; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #d58a5a, #f4b183); }
+    .list-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .list-table th, .list-table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #f4e7db; vertical-align: top; }
+    .list-table th { color: #9a7b65; font-size: 12px; text-transform: uppercase; }
+    .full { grid-column: 1 / -1; }
+    .hidden { display: none !important; }
+    .empty-state { padding: 28px; text-align: center; color: #9a7b65; background: #fff7ef; border: 1px dashed #ecd7c5; border-radius: 18px; }
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { background: #f7e8d7; color: #6a4328; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; }
+    .split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 18px; }
+    .muted { color: #9a7b65; font-size: 13px; }
+    .footer-note { margin-top: 18px; color: #9a7b65; font-size: 13px; text-align: center; }
+    @media (max-width: 1100px) { .stat-grid, .grid-2, .grid-3, .grid-4, .split { grid-template-columns: 1fr 1fr; } }
+    @media (max-width: 820px) { .app { grid-template-columns: 1fr; } .stat-grid, .grid-2, .grid-3, .grid-4, .split { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="logo">Tutor Board</div>
+      <div class="logo-sub">과외 선생님용 학생 관리 페이지</div>
+      <div class="menu">
+        <button class="active" data-view="dashboard">🏠 대시보드</button>
+        <button data-view="students">👩‍🎓 학생 목록</button>
+        <button data-view="student-add">➕ 학생 추가</button>
+        <button data-view="student-detail">📄 학생 페이지</button>
+        <button data-view="materials">✨ AI 문제 서비스</button>
+        <button data-view="listening">🎧 듣기평가 문제</button>
+      </div>
+      <div class="sidebar-card"><h4>오늘 체크할 것</h4><p id="sidebarTodo">학생 데이터를 바탕으로 자동 업데이트됩니다.</p></div>
+      <div class="sidebar-card"><h4>참고</h4><p>AI 문제 서비스와 듣기평가 메뉴가 분리되어 있어서 수업 준비할 때 더 바로 쓰기 편해요.</p></div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div><h1>과외 학생 관리 대시보드</h1><p>학생 관리, 학생별 상세 페이지, AI 문제 서비스, 듣기평가 문제 기능을 한곳에 모았습니다.</p></div>
+        <div class="actions">
+          <button class="btn btn-primary" id="goAddBtn">학생 추가 메뉴로 이동</button>
+          <button class="btn btn-secondary" id="resetSampleBtn">샘플 데이터 복원</button>
+        </div>
+      </div>
+
+      <section class="stat-grid view-section" data-section="dashboard students">
+        <div class="stat-card"><div class="stat-label">전체 학생 수</div><div class="stat-value" id="studentCount">0명</div><div class="stat-sub">현재 등록 학생 기준</div></div>
+        <div class="stat-card"><div class="stat-label">오늘 수업</div><div class="stat-value" id="todayClassCount">0건</div><div class="stat-sub">오늘 진행 예정 수업 수</div></div>
+        <div class="stat-card"><div class="stat-label">숙제 미완료</div><div class="stat-value" id="homeworkIncompleteCount">0건</div><div class="stat-sub">확인 필요한 학생 수</div></div>
+        <div class="stat-card"><div class="stat-label">수업료 미입금</div><div class="stat-value" id="paymentPendingCount">0명</div><div class="stat-sub">정산 체크 필요</div></div>
+      </section>
+
+      <section class="panel view-section" data-section="dashboard students" id="studentsPanel">
+        <div class="panel-header"><h2>학생 목록</h2></div>
+        <div class="search-wrap" style="margin-bottom:16px;">
+          <input type="text" id="searchInput" placeholder="학생 이름 또는 과목 검색" />
+          <select id="subjectFilter"><option value="all">전체 과목</option><option value="영어">영어</option><option value="수학">수학</option><option value="국어">국어</option><option value="과학">과학</option><option value="사회">사회</option></select>
+          <select id="statusFilter"><option value="all">전체 상태</option><option value="homeworkIncomplete">숙제 미완료</option><option value="paymentPending">입금 대기</option><option value="todayClass">오늘 수업</option></select>
+        </div>
+        <div class="student-list" id="studentList"></div>
+      </section>
+
+      <section class="panel view-section" data-section="dashboard student-detail" id="studentDetailSection">
+        <div class="panel-header"><h2>학생 페이지</h2><select id="detailStudentSelect" style="max-width:280px;"></select></div>
+        <div id="studentDetailContent"></div>
+      </section>
+
+      <section class="panel view-section" data-section="materials" id="materialsSection">
+        <div class="panel-header"><h2>AI 문제 서비스</h2></div>
+        <div class="muted" style="margin-bottom:12px;">학생 수준과 과목에 맞는 문제를 바로 생성하고 저장할 수 있어요.</div>
+
+        <div class="grid-3" style="margin-bottom:16px;">
+          <div><label class="muted">학생</label><select id="aiStudentSelect"></select></div>
+          <div><label class="muted">과목</label><select id="aiSubjectSelect"><option>영어</option><option>수학</option><option>국어</option><option>과학</option><option>사회</option></select></div>
+          <div><label class="muted">자료 유형</label><select id="aiTypeSelect"><option>객관식 문제</option><option>주관식 문제</option><option>단어 테스트</option><option>독해 지문 문제</option><option>서술형 문제</option><option>오답 복습 문제</option></select></div>
+          <div><label class="muted">난이도</label><select id="aiLevelSelect"><option>쉬움</option><option selected>보통</option><option>어려움</option></select></div>
+          <div class="full"><label class="muted">주제 / 범위</label><input type="text" id="aiTopicInput" placeholder="예: 관계대명사, 중2 일차함수, 현대시 비유법" /></div>
+          <div class="full"><label class="muted">추가 요청</label><textarea id="aiRequestInput" placeholder="예: 5문항 만들어줘, 해설 포함, 틀리기 쉬운 포인트 반영"></textarea></div>
+        </div>
+
+        <div class="toolbar" style="margin-bottom:16px;">
+          <button class="btn btn-secondary" id="generatePromptBtn">프롬프트 만들기</button>
+          <button class="btn btn-primary" id="generateSampleBtn">문제 생성하기</button>
+          <button class="btn btn-muted" id="copyPromptBtn">프롬프트 복사</button>
+          <button class="btn btn-muted" id="copyResultBtn">결과 복사</button>
+          <button class="btn btn-secondary" id="saveResultToStudentBtn">학생에게 저장</button>
+        </div>
+
+        <div class="split">
+          <div class="detail-box"><div class="detail-title">AI에게 보낼 프롬프트</div><textarea id="generatedPrompt"></textarea></div>
+          <div class="detail-box"><div class="detail-title">생성 결과</div><textarea id="generatedMaterial"></textarea></div>
+        </div>
+      </section>
+
+      <section class="panel view-section" data-section="listening" id="listeningSection">
+        <div class="panel-header"><h2>듣기평가 문제</h2></div>
+        <div class="muted" style="margin-bottom:12px;">듣기평가 문제를 만들고 재생 버튼을 누르면 영어 음성이 바로 나옵니다.</div>
+
+        <div class="grid-3" style="margin-bottom:16px;">
+          <div><label class="muted">학생</label><select id="listeningStudentSelect"></select></div>
+          <div><label class="muted">난이도</label><select id="listeningLevelSelect"><option>쉬움</option><option selected>보통</option><option>어려움</option></select></div>
+          <div><label class="muted">문항 유형</label><select id="listeningQuestionType"><option>대화 듣고 정답 고르기</option><option>장소 파악하기</option><option>시간 파악하기</option><option>의도 파악하기</option></select></div>
+          <div class="full"><label class="muted">상황 / 주제</label><input type="text" id="listeningTopicInput" placeholder="예: 도서관, 학교, 약속 시간, 쇼핑" /></div>
+        </div>
+
+        <div class="toolbar" style="margin-bottom:16px;">
+          <button class="btn btn-primary" id="generateListeningBtn">듣기평가 만들기</button>
+          <button class="btn btn-secondary" id="playListeningBtn">재생</button>
+          <button class="btn btn-muted" id="pauseListeningBtn">일시정지 / 다시재생</button>
+          <button class="btn btn-muted" id="stopListeningBtn">정지</button>
+          <button class="btn btn-secondary" id="saveListeningToStudentBtn">학생에게 저장</button>
+        </div>
+
+        <div class="split">
+          <div class="detail-box"><div class="detail-title">듣기평가 문제</div><textarea id="listeningResult"></textarea></div>
+          <div class="detail-box"><div class="detail-title">듣기 스크립트</div><textarea id="listeningScript"></textarea></div>
+        </div>
+        <audio id="listeningAudio" preload="auto"></audio>
+      </section>
+
+      <section class="panel view-section" data-section="student-add" id="formSection">
+        <div class="panel-header"><h2>학생 추가</h2></div>
+        <form id="studentForm" class="grid-2">
+          <input type="text" id="studentName" placeholder="학생 이름" required />
+          <input type="text" id="studentGrade" placeholder="학교 / 학년" required />
+          <select id="studentSubject" required><option value="">과목 선택</option><option>영어</option><option>수학</option><option>국어</option><option>과학</option><option>사회</option></select>
+          <select id="studentMode" required><option value="">수업 방식</option><option>대면</option><option>비대면</option></select>
+          <input type="text" id="studentPhone" placeholder="연락처" />
+          <input type="text" id="parentPhone" placeholder="학부모 연락처" />
+          <input type="text" id="studentSchedule" placeholder="수업 요일 / 시간 예: 화/목 7:00 PM" required />
+          <input type="text" id="studentLocation" placeholder="수업 장소 또는 비대면" required />
+          <input type="text" id="nextClass" placeholder="다음 수업 예: 4/19 오후 7:00" required />
+          <input type="number" id="progress" placeholder="목표 달성도 (0~100)" min="0" max="100" required />
+          <input type="text" id="recentTopic" placeholder="최근 진도" required />
+          <input type="text" id="homework" placeholder="최근 숙제" required />
+          <select id="homeworkStatus" required><option value="">숙제 상태</option><option value="완료">완료</option><option value="미완료">미완료</option></select>
+          <select id="paymentStatus" required><option value="">수업료 상태</option><option value="완료">완료</option><option value="미입금">미입금</option></select>
+          <textarea class="full" id="studentNote" placeholder="학생 특이사항, 성향, 학부모 요청사항"></textarea>
+          <div class="full" style="display:flex; gap:10px; flex-wrap:wrap;"><button type="submit" class="btn btn-primary">학생 저장</button><button type="reset" class="btn btn-muted">초기화</button></div>
+        </form>
+      </section>
+
+      <div class="footer-note">브라우저 localStorage에 저장됩니다.</div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'tutorBoardStudentsV6';
+    const SAMPLE_STUDENTS = [
+      { id: crypto.randomUUID(), name: '김민지', grade: '고1', subject: '영어', mode: '대면', phone: '010-1111-2222', parentPhone: '010-9999-1111', schedule: '화/목 7:00 PM', location: '학생 집', nextClass: '4/17 오후 7:00', progress: 78, recentTopic: '관계대명사 + 독해 3지문', homework: '단어 1~40 / 문법 워크북 2p', homeworkStatus: '미완료', paymentStatus: '완료', note: '시험 전 단어 확인 필수', nextMaterial: '관계대명사 심화 프린트', counselingMemo: '', testPlan: '', attendanceRecords: [], scoreRecords: [], lessonHistory: [], homeworkSubmissions: [], savedMaterials: [] },
+      { id: crypto.randomUUID(), name: '이준호', grade: '중3', subject: '수학', mode: '비대면', phone: '', parentPhone: '', schedule: '수/토 6:00 PM', location: '비대면', nextClass: '4/18 오후 6:00', progress: 64, recentTopic: '이차방정식 응용', homework: '쎈 B단계 12문제', homeworkStatus: '완료', paymentStatus: '완료', note: '서술형 약함', nextMaterial: '오답 유형 문제', counselingMemo: '', testPlan: '', attendanceRecords: [], scoreRecords: [], lessonHistory: [], homeworkSubmissions: [], savedMaterials: [] }
+    ];
+
+    let students = loadStudents();
+    let currentView = 'dashboard';
+    let selectedStudentId = students[0]?.id || null;
+
+    const studentListEl = document.getElementById('studentList');
+    const detailSelectEl = document.getElementById('detailStudentSelect');
+    const detailContentEl = document.getElementById('studentDetailContent');
+    const aiStudentSelectEl = document.getElementById('aiStudentSelect');
+    const listeningStudentSelectEl = document.getElementById('listeningStudentSelect');
+    const generatedPromptEl = document.getElementById('generatedPrompt');
+    const generatedMaterialEl = document.getElementById('generatedMaterial');
+    const listeningResultEl = document.getElementById('listeningResult');
+    const listeningScriptEl = document.getElementById('listeningScript');
+    const listeningAudio = document.getElementById('listeningAudio');
+
+    function loadStudents() {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (!saved) return JSON.parse(JSON.stringify(SAMPLE_STUDENTS));
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) && parsed.length ? parsed : JSON.parse(JSON.stringify(SAMPLE_STUDENTS));
+      } catch {
+        return JSON.parse(JSON.stringify(SAMPLE_STUDENTS));
+      }
+    }
+
+    function saveStudents() { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
+    function getStudentById(id) { return students.find(s => s.id === id); }
+    function todayClassStudents() { return students.filter(student => /4\/17|금|오늘/i.test(student.nextClass) || /금/.test(student.schedule)); }
+    function escapeHtml(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function escapeTextarea(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+    function renderStats() {
+      document.getElementById('studentCount').textContent = `${students.length}명`;
+      document.getElementById('todayClassCount').textContent = `${todayClassStudents().length}건`;
+      document.getElementById('homeworkIncompleteCount').textContent = `${students.filter(s => s.homeworkStatus === '미완료').length}건`;
+      document.getElementById('paymentPendingCount').textContent = `${students.filter(s => s.paymentStatus === '미입금').length}명`;
+      document.getElementById('sidebarTodo').innerHTML = `• 오늘 수업 ${todayClassStudents().length}건<br>• 숙제 미완료 ${students.filter(s => s.homeworkStatus === '미완료').length}명<br>• 미입금 ${students.filter(s => s.paymentStatus === '미입금').length}명`;
+    }
+
+    function filterStudents() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const subject = document.getElementById('subjectFilter').value;
+      const status = document.getElementById('statusFilter').value;
+      return students.filter(student => {
+        const queryMatch = !query || student.name.toLowerCase().includes(query) || student.subject.toLowerCase().includes(query);
+        const subjectMatch = subject === 'all' || student.subject === subject;
+        const statusMatch = status === 'all' || (status === 'homeworkIncomplete' && student.homeworkStatus === '미완료') || (status === 'paymentPending' && student.paymentStatus === '미입금') || (status === 'todayClass' && todayClassStudents().some(s => s.id === student.id));
+        return queryMatch && subjectMatch && statusMatch;
+      });
+    }
+
+    function renderStudentList() {
+      const filtered = filterStudents();
+      if (!filtered.length) { studentListEl.innerHTML = '<div class="empty-state">조건에 맞는 학생이 없어요.</div>'; return; }
+      studentListEl.innerHTML = filtered.map(student => `
+        <article class="student-card">
+          <div class="student-top">
+            <div><div class="student-name">${escapeHtml(student.name)}</div><div class="student-meta">${escapeHtml(student.grade)} · ${escapeHtml(student.subject)} · ${escapeHtml(student.mode)}<br>${escapeHtml(student.schedule)}</div></div>
+            <div class="badge-group"><span class="badge ${student.homeworkStatus==='완료'?'badge-green':'badge-yellow'}">숙제 ${escapeHtml(student.homeworkStatus)}</span><span class="badge ${student.paymentStatus==='완료'?'badge-green':'badge-red'}">${student.paymentStatus==='완료'?'입금 완료':'입금 대기'}</span></div>
+          </div>
+          <div class="grid-2">
+            <div class="mini-box"><div class="mini-title">다음 수업</div><div class="mini-content">${escapeHtml(student.nextClass)}</div></div>
+            <div class="mini-box"><div class="mini-title">최근 진도</div><div class="mini-content">${escapeHtml(student.recentTopic)}</div></div>
+            <div class="mini-box"><div class="mini-title">다음 시간 자료</div><div class="mini-content">${escapeHtml(student.nextMaterial || '미입력')}</div></div>
+            <div class="mini-box"><div class="mini-title">학생 특이사항</div><div class="mini-content">${escapeHtml(student.note || '메모 없음')}</div></div>
+          </div>
+          <div class="progress-wrap"><div class="progress-label"><span>목표 달성도</span><strong>${Number(student.progress)||0}%</strong></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, Number(student.progress)||0))}%"></div></div></div>
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-primary" onclick="openStudentDetail('${student.id}')">학생 페이지 보기</button><button class="btn btn-danger" onclick="deleteStudent('${student.id}')">삭제</button></div>
+        </article>
+      `).join('');
+    }
+
+    function renderStudentSelects() {
+      const options = students.map(student => `<option value="${student.id}">${escapeHtml(student.name)} · ${escapeHtml(student.subject)}</option>`).join('');
+      detailSelectEl.innerHTML = options || '<option>학생 없음</option>';
+      aiStudentSelectEl.innerHTML = '<option value="">학생 선택</option>' + options;
+      listeningStudentSelectEl.innerHTML = '<option value="">학생 선택</option>' + options;
+      if (selectedStudentId && getStudentById(selectedStudentId)) detailSelectEl.value = selectedStudentId;
+      else if (students[0]) { selectedStudentId = students[0].id; detailSelectEl.value = selectedStudentId; }
+    }
+
+    function renderSimpleRows(list, emptyText, columns) {
+      if (!list || !list.length) return `<div class="empty-state">${escapeHtml(emptyText)}</div>`;
+      return `<table class="list-table"><thead><tr>${columns.map(c=>`<th>${escapeHtml(c.label)}</th>`).join('')}</tr></thead><tbody>${list.map(item=>`<tr>${columns.map(c=>`<td>${escapeHtml(item[c.key] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderStudentDetail() {
+      const student = getStudentById(selectedStudentId) || students[0];
+      if (!student) { detailContentEl.innerHTML = '<div class="empty-state">학생을 먼저 등록해 주세요.</div>'; return; }
+      selectedStudentId = student.id;
+      detailSelectEl.value = student.id;
+      detailContentEl.innerHTML = `
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="detail-box"><div class="detail-title">기본 정보</div><div class="detail-content">${escapeHtml(student.grade)} · ${escapeHtml(student.subject)} · ${escapeHtml(student.mode)}<br>${escapeHtml(student.schedule)}<br>${escapeHtml(student.location)}</div></div>
+          <div class="detail-box"><div class="detail-title">다음 수업</div><div class="detail-content">${escapeHtml(student.nextClass)}</div></div>
+          <div class="detail-box"><div class="detail-title">최근 진도</div><div class="detail-content">${escapeHtml(student.recentTopic)}</div></div>
+          <div class="detail-box"><div class="detail-title">최근 숙제</div><div class="detail-content">${escapeHtml(student.homework)}</div></div>
+        </div>
+        <div class="chip-row" style="margin-bottom:16px;"><span class="chip">숙제 ${escapeHtml(student.homeworkStatus)}</span><span class="chip">수업료 ${escapeHtml(student.paymentStatus)}</span><span class="chip">목표 달성도 ${Number(student.progress)||0}%</span></div>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="detail-box full"><div class="detail-title">다음 시간에 쓸 자료</div><textarea id="detail-nextMaterial">${escapeTextarea(student.nextMaterial || '')}</textarea></div>
+          <div class="detail-box"><div class="detail-title">상담 메모</div><textarea id="detail-counselingMemo">${escapeTextarea(student.counselingMemo || '')}</textarea></div>
+          <div class="detail-box"><div class="detail-title">테스트 계획</div><textarea id="detail-testPlan">${escapeTextarea(student.testPlan || '')}</textarea></div>
+          <div class="detail-box full"><div class="detail-title">기타 학생 메모</div><textarea id="detail-note">${escapeTextarea(student.note || '')}</textarea></div>
+        </div>
+        <div style="margin-bottom:16px;"><button class="btn btn-primary" onclick="saveStudentDetail('${student.id}')">학생 페이지 저장</button></div>
+        <div class="grid-2">
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-header"><h3>출결 기록</h3></div>
+            ${renderSimpleRows(student.attendanceRecords, '출결 기록이 없습니다.', [{label:'날짜',key:'date'},{label:'상태',key:'status'},{label:'메모',key:'note'}])}
+            <div class="grid-3" style="margin-top:12px;"><input type="date" id="attendanceDate" /><select id="attendanceStatus"><option>출석</option><option>지각</option><option>결석</option><option>보강</option></select><input type="text" id="attendanceNote" placeholder="메모" /></div>
+            <div style="margin-top:10px;"><button class="btn btn-secondary" onclick="addAttendanceRecord('${student.id}')">출결 추가</button></div>
+          </div>
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-header"><h3>시험 점수 기록</h3></div>
+            ${renderSimpleRows(student.scoreRecords, '시험 점수 기록이 없습니다.', [{label:'날짜',key:'date'},{label:'시험명',key:'exam'},{label:'점수',key:'score'},{label:'메모',key:'memo'}])}
+            <div class="grid-4" style="margin-top:12px;"><input type="date" id="scoreDate" /><input type="text" id="scoreExam" placeholder="시험명" /><input type="text" id="scoreValue" placeholder="점수/등급" /><input type="text" id="scoreMemo" placeholder="메모" /></div>
+            <div style="margin-top:10px;"><button class="btn btn-secondary" onclick="addScoreRecord('${student.id}')">점수 추가</button></div>
+          </div>
+        </div>
+      `;
+    }
+
+    function pushRecord(studentId, field, record) {
+      const student = getStudentById(studentId);
+      if (!student) return;
+      if (!Array.isArray(student[field])) student[field] = [];
+      student[field].unshift(record);
+      saveStudents();
+      renderAll();
+    }
+
+    function addAttendanceRecord(studentId) {
+      const date = document.getElementById('attendanceDate').value;
+      const status = document.getElementById('attendanceStatus').value;
+      const note = document.getElementById('attendanceNote').value.trim();
+      if (!date) return alert('출결 날짜를 입력해 주세요.');
+      pushRecord(studentId, 'attendanceRecords', { date, status, note });
+    }
+
+    function addScoreRecord(studentId) {
+      const date = document.getElementById('scoreDate').value;
+      const exam = document.getElementById('scoreExam').value.trim();
+      const score = document.getElementById('scoreValue').value.trim();
+      const memo = document.getElementById('scoreMemo').value.trim();
+      if (!date || !exam || !score) return alert('날짜, 시험명, 점수를 입력해 주세요.');
+      pushRecord(studentId, 'scoreRecords', { date, exam, score, memo });
+    }
+
+    function saveStudentDetail(id) {
+      const student = getStudentById(id);
+      if (!student) return;
+      student.nextMaterial = document.getElementById('detail-nextMaterial').value;
+      student.counselingMemo = document.getElementById('detail-counselingMemo').value;
+      student.testPlan = document.getElementById('detail-testPlan').value;
+      student.note = document.getElementById('detail-note').value;
+      saveStudents();
+      renderAll();
+      alert('학생 페이지 내용을 저장했어요.');
+    }
+
+    function generatePrompt() {
+      const student = getStudentById(aiStudentSelectEl.value);
+      const subject = document.getElementById('aiSubjectSelect').value;
+      const type = document.getElementById('aiTypeSelect').value;
+      const level = document.getElementById('aiLevelSelect').value;
+      const topic = document.getElementById('aiTopicInput').value.trim();
+      const request = document.getElementById('aiRequestInput').value.trim();
+      const prompt = `너는 과외 선생님을 돕는 문제 제작 도우미야.\n학생 정보: ${student ? `${student.name}, ${student.grade}, ${student.subject}` : '미지정'}\n과목: ${subject}\n자료 유형: ${type}\n난이도: ${level}\n주제/범위: ${topic || '미입력'}\n최근 진도: ${student?.recentTopic || '미입력'}\n추가 요청: ${request || '없음'}\n요구사항: 학생 수준에 맞는 문제를 만들고, 정답과 간단한 해설을 함께 제공해 줘.`;
+      generatedPromptEl.value = prompt;
+      return prompt;
+    }
+
+    function generateSample() {
+      const type = document.getElementById('aiTypeSelect').value;
+      const topic = document.getElementById('aiTopicInput').value.trim() || '기본 개념';
+      const subject = document.getElementById('aiSubjectSelect').value;
+      const level = document.getElementById('aiLevelSelect').value;
+      let sample = '';
+      if (subject === '영어' && type === '객관식 문제') {
+        sample = `1. 다음 문장에서 관계대명사로 알맞은 것은?\nI know the boy (   ) won the prize.\n① which ② who ③ when ④ where\n정답: ②\n해설: 선행사가 사람이므로 who가 알맞다.`;
+      } else if (subject === '영어' && type === '단어 테스트') {
+        sample = `다음 단어의 뜻을 쓰세요.\n1. remind\n2. increase\n3. accurate\n\n정답\n1. 상기시키다\n2. 증가하다\n3. 정확한`;
+      } else if (subject === '수학') {
+        sample = `1. ${topic} 단원 문제\n방정식 2x + 3 = 11을 풀어라.\n정답: x = 4\n해설: 양변에서 3을 빼고 2로 나눈다.`;
+      } else if (subject === '국어') {
+        sample = `1. 다음 표현법으로 가장 알맞은 것은?\n'바람이 속삭였다'에 쓰인 표현법을 고르시오.\n① 직유 ② 은유 ③ 의인 ④ 반어\n정답: ③\n해설: 사람이 아닌 바람을 사람처럼 표현했다.`;
+      } else {
+        sample = `${level} 난이도의 ${subject} ${type} 예시\n주제: ${topic}\n문제 3개와 간단한 해설을 이 형식으로 확장해서 만들 수 있습니다.`;
+      }
+      generatedMaterialEl.value = sample;
+    }
+
+    function generateListeningProblem() {
+      const student = getStudentById(listeningStudentSelectEl.value);
+      const level = document.getElementById('listeningLevelSelect').value;
+      const type = document.getElementById('listeningQuestionType').value;
+      const topic = document.getElementById('listeningTopicInput').value.trim() || 'school';
+      let script = '';
+      let problem = '';
+
+      if (type === '시간 파악하기') {
+        script = 'W: What time does the library open? M: It opens at nine in the morning.';
+        problem = `문제: 도서관은 몇 시에 문을 엽니까?\n① 8시 ② 9시 ③ 10시 ④ 11시\n정답: ②\n해설: 남자가 오전 9시에 연다고 말했다.`;
+      } else if (type === '장소 파악하기') {
+        script = 'M: Can I borrow this book today? W: Sure. Please return it by Friday.';
+        problem = `문제: 두 사람이 있는 장소로 가장 알맞은 것은?\n① 식당 ② 도서관 ③ 병원 ④ 공원\n정답: ②\n해설: 책을 빌리고 반납하는 내용이므로 도서관이다.`;
+      } else if (type === '의도 파악하기') {
+        script = 'W: You look tired. Why do not you take a short break? M: That sounds like a good idea.';
+        problem = `문제: 여자의 의도로 가장 알맞은 것은?\n① 사과하려고 ② 충고하려고 ③ 초대하려고 ④ 부탁하려고\n정답: ②\n해설: 쉬라고 조언하고 있으므로 충고이다.`;
+      } else {
+        script = 'W: Did you finish your homework? M: Not yet. I will do it after dinner.';
+        problem = `문제: 남자가 저녁 후에 할 일은 무엇입니까?\n① 숙제하기 ② 운동하기 ③ 독서하기 ④ 청소하기\n정답: ①\n해설: 남자는 저녁 후 숙제를 하겠다고 말했다.`;
+      }
+
+      if (student) problem = `${student.name} 학생용 ${level} 듣기평가\n주제: ${topic}\n\n${problem}`;
+      else problem = `${level} 듣기평가\n주제: ${topic}\n\n${problem}`;
+
+      listeningScriptEl.value = script;
+      listeningResultEl.value = problem;
+
+      const utter = new SpeechSynthesisUtterance(script);
+      utter.lang = 'en-US';
+      utter.rate = level === '쉬움' ? 0.8 : level === '어려움' ? 1.0 : 0.9;
+      window._listeningUtterance = utter;
+    }
+
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); alert('복사했어요.'); }
+      catch { alert('복사에 실패했어요.'); }
+    }
+
+    function saveResultToStudent() {
+      const student = getStudentById(aiStudentSelectEl.value);
+      if (!student) return alert('저장할 학생을 먼저 선택해 주세요.');
+      const content = generatedMaterialEl.value.trim();
+      if (!content) return alert('저장할 생성 결과가 없어요.');
+      if (!Array.isArray(student.savedMaterials)) student.savedMaterials = [];
+      student.savedMaterials.unshift({ savedAt: new Date().toISOString().slice(0,10), type: document.getElementById('aiTypeSelect').value, topic: document.getElementById('aiTopicInput').value.trim() || '미입력', content });
+      saveStudents();
+      alert(`${student.name} 학생에게 자료를 저장했어요.`);
+    }
+
+    function saveListeningToStudent() {
+      const student = getStudentById(listeningStudentSelectEl.value);
+      if (!student) return alert('저장할 학생을 먼저 선택해 주세요.');
+      const content = listeningResultEl.value.trim();
+      const script = listeningScriptEl.value.trim();
+      if (!content || !script) return alert('먼저 듣기평가 문제를 만들어 주세요.');
+      if (!Array.isArray(student.savedMaterials)) student.savedMaterials = [];
+      student.savedMaterials.unshift({ savedAt: new Date().toISOString().slice(0,10), type: '듣기평가 문제', topic: document.getElementById('listeningTopicInput').value.trim() || '미입력', content: `${content}\n\n[스크립트]\n${script}` });
+      saveStudents();
+      alert(`${student.name} 학생에게 듣기평가 자료를 저장했어요.`);
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.menu button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      document.querySelectorAll('.view-section').forEach(section => {
+        const targets = section.dataset.section.split(' ');
+        section.classList.toggle('hidden', !targets.includes(view));
+      });
+    }
+
+    function openStudentDetail(id) {
+      selectedStudentId = id;
+      renderStudentDetail();
+      switchView('student-detail');
+    }
+
+    function deleteStudent(id) {
+      const target = getStudentById(id);
+      if (!target) return;
+      if (!confirm(`${target.name} 학생을 삭제할까요?`)) return;
+      students = students.filter(s => s.id !== id);
+      if (selectedStudentId === id) selectedStudentId = students[0]?.id || null;
+      saveStudents();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderStats();
+      renderStudentList();
+      renderStudentSelects();
+      renderStudentDetail();
+      switchView(currentView);
+    }
+
+    window.openStudentDetail = openStudentDetail;
+    window.deleteStudent = deleteStudent;
+    window.saveStudentDetail = saveStudentDetail;
+    window.addAttendanceRecord = addAttendanceRecord;
+    window.addScoreRecord = addScoreRecord;
+
+    document.getElementById('goAddBtn').addEventListener('click', () => {
+      switchView('student-add');
+      document.getElementById('formSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    });
+
+    document.getElementById('resetSampleBtn').addEventListener('click', () => {
+      if (!confirm('현재 데이터를 지우고 샘플 데이터로 복원할까요?')) return;
+      students = JSON.parse(JSON.stringify(SAMPLE_STUDENTS));
+      selectedStudentId = students[0]?.id || null;
+      saveStudents();
+      renderAll();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderStudentList);
+    document.getElementById('subjectFilter').addEventListener('change', renderStudentList);
+    document.getElementById('statusFilter').addEventListener('change', renderStudentList);
+    detailSelectEl.addEventListener('change', e => { selectedStudentId = e.target.value; renderStudentDetail(); });
+    document.querySelectorAll('.menu button').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
+    document.getElementById('generatePromptBtn').addEventListener('click', generatePrompt);
+    document.getElementById('generateSampleBtn').addEventListener('click', generateSample);
+    document.getElementById('copyPromptBtn').addEventListener('click', () => copyText(generatedPromptEl.value));
+    document.getElementById('copyResultBtn').addEventListener('click', () => copyText(generatedMaterialEl.value));
+    document.getElementById('saveResultToStudentBtn').addEventListener('click', saveResultToStudent);
+    document.getElementById('generateListeningBtn').addEventListener('click', generateListeningProblem);
+    document.getElementById('playListeningBtn').addEventListener('click', () => {
+      if (window._listeningUtterance) {
+        speechSynthesis.cancel();
+        speechSynthesis.speak(window._listeningUtterance);
+      } else if (listeningScriptEl.value.trim()) {
+        const utter = new SpeechSynthesisUtterance(listeningScriptEl.value.trim());
+        utter.lang = 'en-US';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+      } else {
+        alert('먼저 듣기평가 문제를 만들어 주세요.');
+      }
+    });
+    document.getElementById('pauseListeningBtn').addEventListener('click', () => {
+      if (speechSynthesis.speaking && !speechSynthesis.paused) speechSynthesis.pause();
+      else if (speechSynthesis.paused) speechSynthesis.resume();
+    });
+    document.getElementById('stopListeningBtn').addEventListener('click', () => {
+      speechSynthesis.cancel();
+      if (listeningAudio) {
+        listeningAudio.pause();
+        listeningAudio.currentTime = 0;
+      }
+    });
+    document.getElementById('saveListeningToStudentBtn').addEventListener('click', saveListeningToStudent);
+
+    document.getElementById('studentForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const newStudent = {
+        id: crypto.randomUUID(),
+        name: document.getElementById('studentName').value.trim(),
+        grade: document.getElementById('studentGrade').value.trim(),
+        subject: document.getElementById('studentSubject').value,
+        mode: document.getElementById('studentMode').value,
+        phone: document.getElementById('studentPhone').value.trim(),
+        parentPhone: document.getElementById('parentPhone').value.trim(),
+        schedule: document.getElementById('studentSchedule').value.trim(),
+        location: document.getElementById('studentLocation').value.trim(),
+        nextClass: document.getElementById('nextClass').value.trim(),
+        progress: Number(document.getElementById('progress').value),
+        recentTopic: document.getElementById('recentTopic').value.trim(),
+        homework: document.getElementById('homework').value.trim(),
+        homeworkStatus: document.getElementById('homeworkStatus').value,
+        paymentStatus: document.getElementById('paymentStatus').value,
+        note: document.getElementById('studentNote').value.trim(),
+        nextMaterial: '', counselingMemo: '', testPlan: '', attendanceRecords: [], scoreRecords: [], lessonHistory: [], homeworkSubmissions: [], savedMaterials: []
+      };
+      students.unshift(newStudent);
+      selectedStudentId = newStudent.id;
+      saveStudents();
+      e.target.reset();
+      renderAll();
+      alert('학생을 저장했어요.');
+    });
+
+    renderAll();
+  </script>
+</body>
+</html>
