@@ -1,0 +1,997 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tutor Board Pro</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Pretendard", "Apple SD Gothic Neo", "Malgun Gothic", sans-serif;
+      background: linear-gradient(180deg, #fffaf5 0%, #fff5ec 100%);
+      color: #4b3a2f;
+    }
+    .app { display: grid; grid-template-columns: 300px 1fr; min-height: 100vh; }
+    .sidebar {
+      background: linear-gradient(180deg, #7e5539 0%, #a96f44 100%);
+      color: #fffaf5;
+      padding: 24px 18px;
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      overflow-y: auto;
+    }
+    .brand { padding: 10px 10px 18px; border-bottom: 1px solid rgba(255,255,255,0.12); margin-bottom: 18px; }
+    .brand h1 { margin: 0; font-size: 24px; letter-spacing: -0.02em; }
+    .brand p { margin: 8px 0 0; color: #f7e8d7; font-size: 13px; line-height: 1.5; }
+    .menu-section-title { font-size: 12px; color: #f5dcc6; margin: 14px 10px 8px; text-transform: uppercase; letter-spacing: 0.08em; }
+    .menu { display: flex; flex-direction: column; gap: 8px; }
+    .menu button {
+      border: none; background: rgba(255,255,255,0.1); color: #fffaf5; text-align: left;
+      padding: 13px 14px; border-radius: 16px; font-size: 14px; cursor: pointer; transition: 0.2s ease; font-weight: 700;
+    }
+    .menu button:hover, .menu button.active { background: #f4b183; color: #5a3924; transform: translateY(-1px); }
+    .sidebar-card { background: rgba(255,255,255,0.12); border-radius: 18px; padding: 14px; margin-top: 18px; border: 1px solid rgba(255,255,255,0.08); }
+    .sidebar-card h4 { margin: 0 0 8px; font-size: 14px; }
+    .sidebar-card p { margin: 0; font-size: 13px; color: #fff3e8; line-height: 1.6; }
+    .main { padding: 28px; }
+    .topbar { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .topbar h2 { margin: 0; font-size: 32px; color: #6a4328; letter-spacing: -0.03em; }
+    .topbar p { margin: 8px 0 0; color: #9a7b65; font-size: 14px; }
+    .actions { display: flex; gap: 10px; flex-wrap: wrap; }
+    .btn {
+      border: none; border-radius: 14px; padding: 11px 15px; font-weight: 700; cursor: pointer; font-size: 14px; transition: 0.2s ease;
+    }
+    .btn:hover { transform: translateY(-1px); }
+    .btn-primary { background: #8b5e3c; color: white; }
+    .btn-secondary { background: #f4b183; color: #5a3924; }
+    .btn-danger { background: #d97f6c; color: white; }
+    .btn-muted { background: #efe0d1; color: #6a4328; }
+    .btn-outline { background: white; color: #8b5e3c; border: 1px solid #e8cdb7; }
+    .hero {
+      background: linear-gradient(135deg, #fff8f1 0%, #fff1e1 100%);
+      border: 1px solid #f0dbc6; border-radius: 24px; padding: 22px;
+      display: flex; justify-content: space-between; gap: 16px; align-items: center; margin-bottom: 22px;
+      box-shadow: 0 14px 34px rgba(135, 93, 60, 0.08); flex-wrap: wrap;
+    }
+    .hero h3 { margin: 0; font-size: 24px; color: #6a4328; }
+    .hero p { margin: 8px 0 0; color: #8f6f5a; line-height: 1.6; font-size: 14px; max-width: 780px; }
+    .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 16px; margin-bottom: 22px; }
+    .panel, .student-card, .stat-card {
+      background: rgba(255,255,255,0.88); backdrop-filter: blur(8px); border-radius: 24px;
+      box-shadow: 0 14px 34px rgba(135, 93, 60, 0.08); border: 1px solid #f1dfcf;
+    }
+    .stat-card { padding: 18px; }
+    .stat-label { color: #9a7b65; font-size: 13px; margin-bottom: 10px; }
+    .stat-value { font-size: 30px; font-weight: 800; color: #6a4328; }
+    .stat-sub { margin-top: 8px; font-size: 13px; color: #b08d75; }
+    .panel { padding: 22px; margin-bottom: 18px; }
+    .panel-header { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+    .panel-header h3 { margin: 0; font-size: 21px; color: #6a4328; }
+    .muted { color: #9a7b65; font-size: 13px; line-height: 1.6; }
+    input, select, textarea {
+      border: 1px solid #ecd7c5; border-radius: 14px; padding: 11px 13px; font-size: 14px; background: #fff; color: #4b3a2f; width: 100%;
+    }
+    textarea { resize: vertical; min-height: 120px; }
+    .search-wrap, .toolbar { display: flex; gap: 10px; flex-wrap: wrap; width: 100%; }
+    .grid-2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; }
+    .grid-5 { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 14px; }
+    .split { display: grid; grid-template-columns: 1.08fr 0.92fr; gap: 18px; }
+    .full { grid-column: 1 / -1; }
+    .student-list { display: grid; gap: 14px; }
+    .student-card { padding: 18px; transition: 0.18s ease; }
+    .student-card:hover { transform: translateY(-2px); box-shadow: 0 18px 36px rgba(135, 93, 60, 0.1); }
+    .student-top { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; margin-bottom: 12px; }
+    .student-name { font-size: 18px; font-weight: 800; margin-bottom: 4px; color: #6a4328; }
+    .student-meta { font-size: 13px; color: #9a7b65; line-height: 1.5; }
+    .badge-group { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+    .badge { padding: 7px 10px; border-radius: 999px; font-size: 12px; font-weight: 700; }
+    .badge-yellow { background: #fff1c9; color: #9a6c00; }
+    .badge-green { background: #e7f4df; color: #557a32; }
+    .badge-red { background: #fde3dc; color: #b55a46; }
+    .badge-pink { background: #ffe5d0; color: #a95f2f; }
+    .mini-box, .detail-box, .service-card, .subject-card {
+      background: #fdf4ea; border-radius: 18px; padding: 14px; border: 1px solid #f2e2d3;
+    }
+    .mini-title, .detail-title, .service-title { font-size: 12px; color: #9a7b65; margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.03em; }
+    .mini-content, .detail-content { font-size: 14px; font-weight: 700; line-height: 1.6; color: #5d402b; }
+    .service-card h4, .subject-card h4 { margin: 0 0 6px; color: #6a4328; font-size: 16px; }
+    .service-card p, .subject-card p { margin: 0; color: #8f6f5a; font-size: 13px; line-height: 1.6; }
+    .subject-card.active { border: 2px solid #d58a5a; box-shadow: 0 8px 20px rgba(213, 138, 90, 0.15); }
+    .progress-wrap { margin-top: 10px; }
+    .progress-label { display: flex; justify-content: space-between; font-size: 13px; color: #9a7b65; margin-bottom: 6px; }
+    .progress-bar { width: 100%; height: 10px; background: #f1dfd0; border-radius: 999px; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 999px; background: linear-gradient(90deg, #d58a5a, #f4b183); }
+    .list-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+    .list-table th, .list-table td { text-align: left; padding: 12px 10px; border-bottom: 1px solid #f4e7db; vertical-align: top; }
+    .list-table th { color: #9a7b65; font-size: 12px; text-transform: uppercase; }
+    .chip-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .chip { background: #f7e8d7; color: #6a4328; border-radius: 999px; padding: 8px 12px; font-size: 12px; font-weight: 700; }
+    .chart-box { background: #fff; border: 1px solid #f0dfcf; border-radius: 18px; padding: 12px; }
+    .hidden { display: none !important; }
+    .empty-state { padding: 28px; text-align: center; color: #9a7b65; background: #fff7ef; border: 1px dashed #ecd7c5; border-radius: 18px; }
+    .footer-note { margin-top: 18px; color: #9a7b65; font-size: 13px; text-align: center; }
+    @media (max-width: 1180px) {
+      .stat-grid, .grid-2, .grid-3, .grid-4, .grid-5, .split { grid-template-columns: 1fr 1fr; }
+    }
+    @media (max-width: 900px) {
+      .app { grid-template-columns: 1fr; }
+      .sidebar { position: relative; height: auto; }
+      .stat-grid, .grid-2, .grid-3, .grid-4, .grid-5, .split { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside class="sidebar">
+      <div class="brand">
+        <h1>Tutor Board Pro</h1>
+        <p>학생 관리, 수업 준비, 전과목 문제 제작, 듣기평가, 지출 관리, 학습 분석까지 한 번에 정리하는 과외 운영 서비스</p>
+      </div>
+      <div class="menu-section-title">Main</div>
+      <div class="menu">
+        <button class="active" data-view="dashboard">🏠 대시보드</button>
+        <button data-view="students">👩‍🎓 학생 목록</button>
+        <button data-view="student-add">➕ 학생 추가</button>
+        <button data-view="student-detail">📄 학생 페이지</button>
+      </div>
+      <div class="menu-section-title">Tools</div>
+      <div class="menu">
+        <button data-view="problem-platform">✨ 전과목 문제 제작 플랫폼</button>
+        <button data-view="listening">🎧 듣기평가 문제</button>
+        <button data-view="expenses">💸 지출 관리</button>
+      </div>
+      <div class="sidebar-card">
+        <h4>오늘 체크할 것</h4>
+        <p id="sidebarTodo">학생 데이터를 바탕으로 자동 업데이트됩니다.</p>
+      </div>
+      <div class="sidebar-card">
+        <h4>분석 팁</h4>
+        <p>학습 곡선, Churn Score, ROI, 상담 키워드까지 함께 보면 진짜 데이터 기반 운영 경험처럼 보일 수 있어요.</p>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="topbar">
+        <div>
+          <h2>과외 운영 서비스</h2>
+          <p>학생 관리부터 전과목 문제 제작, 듣기평가, 지출 정리, 학습 분석과 CRM까지 실제 서비스처럼 사용할 수 있게 구성했습니다.</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="goAddBtn">학생 추가로 이동</button>
+          <button class="btn btn-secondary" id="resetSampleBtn">샘플 데이터 복원</button>
+        </div>
+      </div>
+
+      <section class="hero view-section" data-section="dashboard">
+        <div>
+          <h3>데이터 기반 의사결정형 과외 운영</h3>
+          <p>이번 버전은 학습 곡선, 이탈 위험도, ROI, 상담 데이터 마이닝, 오답 기반 추천 엔진까지 포함해 단순 관리가 아니라 실제 분석형 에듀테크 도구처럼 사용할 수 있게 확장했습니다.</p>
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" onclick="switchView('problem-platform')">전과목 문제 만들기</button>
+          <button class="btn btn-outline" onclick="switchView('student-detail')">학생 분석 보기</button>
+        </div>
+      </section>
+
+      <section class="stat-grid view-section" data-section="dashboard students expenses">
+        <div class="stat-card"><div class="stat-label">전체 학생 수</div><div class="stat-value" id="studentCount">0명</div><div class="stat-sub">현재 등록 학생 기준</div></div>
+        <div class="stat-card"><div class="stat-label">오늘 수업</div><div class="stat-value" id="todayClassCount">0건</div><div class="stat-sub">오늘 진행 예정 수업 수</div></div>
+        <div class="stat-card"><div class="stat-label">이번 달 지출</div><div class="stat-value" id="monthlyExpenseTotal">0원</div><div class="stat-sub">지출 관리 메뉴 기준</div></div>
+        <div class="stat-card"><div class="stat-label">이번 달 순수익</div><div class="stat-value" id="netProfitStat">0원</div><div class="stat-sub">매출 - 지출 기준</div></div>
+      </section>
+
+      <section class="panel view-section" data-section="dashboard">
+        <div class="panel-header"><h3>학습 분석 & 경영 인사이트</h3></div>
+        <div class="grid-4">
+          <div class="service-card"><div class="service-title">Learning Analytics</div><h4>학습 곡선</h4><p>학생의 성취도 이력을 시계열로 누적하여 상승 곡선인지 정체기인지 시각적으로 확인합니다.</p></div>
+          <div class="service-card"><div class="service-title">Churn Prediction</div><h4>이탈 위험도</h4><p>숙제 미완료, 미입금, 진도율을 가중치로 계산해 관리 주의 학생을 선제적으로 파악합니다.</p></div>
+          <div class="service-card"><div class="service-title">ROI & LTV</div><h4>수익성 분석</h4><p>학생별 총 매출, 준비 시간, 지출 비용을 반영해 순수익과 ROI를 계산합니다.</p></div>
+          <div class="service-card"><div class="service-title">CRM Mining</div><h4>상담 키워드 분석</h4><p>상담 메모 텍스트를 정형화해 학부모 상담용 핵심 키워드를 자동 리포트로 보여줍니다.</p></div>
+        </div>
+      </section>
+
+      <section class="panel view-section" data-section="dashboard">
+        <div class="panel-header"><h3>월간 수익 / 지출 추이</h3><span class="muted">Chart.js 기반 시각화</span></div>
+        <div class="chart-box"><canvas id="financeChart" height="110"></canvas></div>
+      </section>
+
+      <section class="panel view-section" data-section="dashboard students" id="studentsPanel">
+        <div class="panel-header"><h3>학생 목록</h3></div>
+        <div class="search-wrap" style="margin-bottom:16px;">
+          <input type="text" id="searchInput" placeholder="학생 이름 또는 과목 검색" />
+          <select id="subjectFilter"><option value="all">전체 과목</option><option value="영어">영어</option><option value="수학">수학</option><option value="국어">국어</option><option value="과학">과학</option><option value="사회">사회</option></select>
+          <select id="statusFilter"><option value="all">전체 상태</option><option value="homeworkIncomplete">숙제 미완료</option><option value="paymentPending">입금 대기</option><option value="todayClass">오늘 수업</option></select>
+        </div>
+        <div class="student-list" id="studentList"></div>
+      </section>
+
+      <section class="panel view-section" data-section="student-add" id="formSection">
+        <div class="panel-header"><h3>학생 추가</h3><span class="muted">새로운 학생 정보를 입력해 보세요.</span></div>
+        <form id="studentForm" class="grid-2">
+          <input type="text" id="studentName" placeholder="학생 이름" required />
+          <input type="text" id="studentGrade" placeholder="학교 / 학년" required />
+          <select id="studentSubject" required><option value="">과목 선택</option><option>영어</option><option>수학</option><option>국어</option><option>과학</option><option>사회</option></select>
+          <select id="studentMode" required><option value="">수업 방식</option><option>대면</option><option>비대면</option></select>
+          <input type="text" id="studentPhone" placeholder="연락처" />
+          <input type="text" id="parentPhone" placeholder="학부모 연락처" />
+          <input type="text" id="studentSchedule" placeholder="수업 요일 / 시간 예: 화/목 7:00 PM" required />
+          <input type="text" id="studentLocation" placeholder="수업 장소 또는 비대면" required />
+          <input type="number" id="studentMonthlyFee" placeholder="월 수업료" min="0" required />
+          <input type="number" id="studentMonthlyHours" placeholder="월 수업 시간(시간 단위)" min="0" required />
+          <input type="text" id="nextClass" placeholder="다음 수업 예: 4/19 오후 7:00" required />
+          <input type="number" id="progress" placeholder="목표 달성도 (0~100)" min="0" max="100" required />
+          <input type="text" id="recentTopic" placeholder="최근 진도" required />
+          <input type="text" id="homework" placeholder="최근 숙제" required />
+          <select id="homeworkStatus" required><option value="">숙제 상태</option><option value="완료">완료</option><option value="미완료">미완료</option></select>
+          <select id="paymentStatus" required><option value="">수업료 상태</option><option value="완료">완료</option><option value="미입금">미입금</option></select>
+          <textarea class="full" id="studentNote" placeholder="학생 특이사항, 성향, 학부모 요청사항"></textarea>
+          <div class="full" style="display:flex; gap:10px; flex-wrap:wrap;"><button type="submit" class="btn btn-primary">학생 저장</button><button type="reset" class="btn btn-muted">초기화</button></div>
+        </form>
+      </section>
+
+      <section class="panel view-section" data-section="student-detail" id="studentDetailSection">
+        <div class="panel-header"><h3>학생 페이지</h3><select id="detailStudentSelect" style="max-width:280px;"></select></div>
+        <div id="studentDetailContent"></div>
+      </section>
+
+      <section class="panel view-section" data-section="problem-platform" id="problemPlatformSection">
+        <div class="panel-header"><h3>전과목 고퀄 문제 제작 플랫폼</h3><span class="muted">하나의 메뉴에서 전과목 문제를 퀄리티 있게 생성합니다.</span></div>
+        <div class="grid-5" style="margin-bottom:16px;">
+          <div class="subject-card active" data-subject-card="영어"><h4>영어</h4><p>독해, 주제, 제목, 요약, 어휘, 문법</p></div>
+          <div class="subject-card" data-subject-card="수학"><h4>수학</h4><p>계산, 함수, 방정식, 확률, 도형</p></div>
+          <div class="subject-card" data-subject-card="국어"><h4>국어</h4><p>문학, 비문학, 문법, 표현법</p></div>
+          <div class="subject-card" data-subject-card="사회"><h4>사회</h4><p>개념 확인, 자료 해석, 사례 적용</p></div>
+          <div class="subject-card" data-subject-card="과학"><h4>과학</h4><p>개념, 실험, 현상 설명, 자료 분석</p></div>
+        </div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div><label class="muted">학생</label><select id="aiStudentSelect"></select></div>
+          <div><label class="muted">과목</label><select id="aiSubjectSelect"><option>영어</option><option>수학</option><option>국어</option><option>사회</option><option>과학</option></select></div>
+          <div><label class="muted">시험 스타일</label><select id="examStyleSelect"><option>내신형</option><option>모의고사형</option></select></div>
+          <div><label class="muted">학년</label><select id="gradeLevelSelect"><option>중1</option><option>중2</option><option>중3</option><option>고1</option><option>고2</option><option>고3</option></select></div>
+          <div><label class="muted">출제 유형</label><select id="aiTypeSelect"></select></div>
+          <div><label class="muted">난이도</label><select id="aiLevelSelect"><option>쉬움</option><option selected>보통</option><option>어려움</option></select></div>
+          <div><label class="muted">문항 수</label><select id="questionCountSelect"><option>1문항</option><option>2문항</option><option>3문항</option><option>5문항</option></select></div>
+          <div><label class="muted">문제 형식</label><select id="problemFormatSelect"><option>객관식</option><option>주관식</option><option>혼합형</option></select></div>
+          <div class="full"><label class="muted">주제 / 범위</label><input type="text" id="aiTopicInput" placeholder="예: 고1 모의고사 주제 찾기 문제, 일차함수, 사회 문화 변동, 힘과 운동" /></div>
+          <div class="full"><label class="muted">추가 요청</label><textarea id="aiRequestInput" placeholder="예: 오답 포인트가 잘 보이게, 해설 자세히, 고1 수준으로, 내신 스타일로"></textarea></div>
+        </div>
+        <div class="toolbar" style="margin-bottom:16px;">
+          <button class="btn btn-secondary" id="generatePromptBtn">프롬프트 만들기</button>
+          <button class="btn btn-primary" id="generateAiProblemBtn">문제 생성하기</button>
+          <button class="btn btn-muted" id="copyPromptBtn">프롬프트 복사</button>
+          <button class="btn btn-muted" id="copyResultBtn">결과 복사</button>
+          <button class="btn btn-secondary" id="saveResultToStudentBtn">학생에게 저장</button>
+          <button class="btn btn-outline" id="printPdfBtn">PDF 출력</button>
+        </div>
+        <div class="split">
+          <div class="detail-box"><div class="detail-title">AI에게 보낼 프롬프트</div><textarea id="generatedPrompt"></textarea></div>
+          <div class="detail-box"><div class="detail-title">생성 결과</div><textarea id="generatedMaterial"></textarea></div>
+        </div>
+      </section>
+
+      <section class="panel view-section" data-section="listening" id="listeningSection">
+        <div class="panel-header"><h3>듣기평가 문제</h3><span class="muted">직접 오디오 파일 업로드 또는 브라우저 음성 재생</span></div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div><label class="muted">학생</label><select id="listeningStudentSelect"></select></div>
+          <div><label class="muted">난이도</label><select id="listeningLevelSelect"><option>쉬움</option><option selected>보통</option><option>어려움</option></select></div>
+          <div><label class="muted">문항 유형</label><select id="listeningQuestionType"><option>대화 듣고 정답 고르기</option><option>장소 파악하기</option><option>시간 파악하기</option><option>의도 파악하기</option></select></div>
+          <div><label class="muted">오디오 파일 업로드</label><input type="file" id="listeningAudioFile" accept="audio/*" /></div>
+          <div class="full"><label class="muted">상황 / 주제</label><input type="text" id="listeningTopicInput" placeholder="예: 도서관, 학교, 약속 시간, 쇼핑" /></div>
+        </div>
+        <div class="toolbar" style="margin-bottom:16px;">
+          <button class="btn btn-primary" id="generateListeningBtn">듣기평가 만들기</button>
+          <button class="btn btn-secondary" id="playListeningBtn">재생</button>
+          <button class="btn btn-muted" id="pauseListeningBtn">일시정지 / 다시재생</button>
+          <button class="btn btn-muted" id="stopListeningBtn">정지</button>
+          <button class="btn btn-secondary" id="saveListeningToStudentBtn">학생에게 저장</button>
+        </div>
+        <div class="split">
+          <div class="detail-box"><div class="detail-title">듣기평가 문제</div><textarea id="listeningResult"></textarea></div>
+          <div class="detail-box"><div class="detail-title">듣기 스크립트</div><textarea id="listeningScript"></textarea></div>
+        </div>
+        <audio id="listeningAudio" controls style="width:100%; margin-top:16px;"></audio>
+      </section>
+
+      <section class="panel view-section" data-section="expenses" id="expensesSection">
+        <div class="panel-header"><h3>지출 관리</h3><span class="muted">교재비, 프린트비, 교통비 등 과외 운영 비용을 정리하세요.</span></div>
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div><label class="muted">날짜</label><input type="date" id="expenseDate" /></div>
+          <div><label class="muted">카테고리</label><select id="expenseCategory"><option>교재비</option><option>프린트비</option><option>교통비</option><option>카페비</option><option>문구비</option><option>기타</option></select></div>
+          <div><label class="muted">금액</label><input type="number" id="expenseAmount" placeholder="숫자만 입력" min="0" /></div>
+          <div><label class="muted">메모</label><input type="text" id="expenseMemo" placeholder="예: 영어 프린트 20장" /></div>
+        </div>
+        <div class="toolbar" style="margin-bottom:16px;"><button class="btn btn-primary" id="addExpenseBtn">지출 추가</button></div>
+        <div id="expenseTableWrap"></div>
+      </section>
+
+      <div class="footer-note">브라우저 localStorage에 저장됩니다. 같은 브라우저에서는 새로고침 후에도 유지됩니다.</div>
+    </main>
+  </div>
+
+  <script>
+    const STORAGE_KEY = 'tutorBoardStudentsV9';
+    const EXPENSE_KEY = 'tutorBoardExpensesV3';
+
+    const SAMPLE_STUDENTS = [
+      {
+        id: crypto.randomUUID(), name: '김민지', grade: '고1', subject: '영어', mode: '대면', phone: '010-1111-2222', parentPhone: '010-9999-1111',
+        schedule: '화/목 7:00 PM', location: '학생 집', nextClass: '4/17 오후 7:00', progress: 78,
+        recentTopic: '관계대명사 + 독해 3지문', homework: '단어 1~40 / 문법 워크북 2p', homeworkStatus: '미완료', paymentStatus: '완료',
+        monthlyFee: 320000, monthlyHours: 8,
+        note: '의욕 저하가 있을 때 칭찬형 피드백 효과적. 입시 상담 요청 있음.', nextMaterial: '관계대명사 심화 프린트', counselingMemo: '기초 부족, 의욕 저하, 입시 상담', testPlan: '', savedMaterials: [{ savedAt: '2026-04-12', type: '독해 지문 문제', topic: '주제 찾기', content: '... [오답유형: 주제 추론]' }],
+        phoneticsLog: { difficultSounds: ['[r]', '[θ]'], avgWPM: 108, intonationScore: 82, stressScore: 76, articulationScore: 71 },
+        linguisticProfile: { syntaxScore: 74, morphologyScore: 68, semanticsScore: 80, vocabularyLevel: 'B1', errorPattern: 'Tense Agreement', lexileReport: '고1 수준 어휘 72% 점유' },
+        shadowingRecords: [{ date: '2026-04-12', sentence: 'Reading regularly improves concentration.', intonation: true, stress: false, score: 78 }],
+        speakingArchive: [{ date: '2026-04-10', title: '모의고사 지문 shadowing', waveformMemo: '문장 말미 상승 억양 과다', audioName: 'sample-reading-1.m4a' }],
+        performanceHistory: [{ date: '2026-03-10', score: 62 }, { date: '2026-03-24', score: 68 }, { date: '2026-04-07', score: 73 }, { date: '2026-04-21', score: 78 }]
+      },
+      {
+        id: crypto.randomUUID(), name: '이준호', grade: '중3', subject: '수학', mode: '비대면', phone: '', parentPhone: '',
+        schedule: '수/토 6:00 PM', location: '비대면', nextClass: '4/18 오후 6:00', progress: 64,
+        recentTopic: '이차방정식 응용', homework: '쎈 B단계 12문제', homeworkStatus: '완료', paymentStatus: '완료',
+        monthlyFee: 280000, monthlyHours: 6,
+        note: '기초 부족은 적지만 실수 많음', nextMaterial: '오답 유형 문제', counselingMemo: '실수 많음, 집중력 좋음', testPlan: '', savedMaterials: [],
+        phoneticsLog: { difficultSounds: [], avgWPM: 0, intonationScore: 0, stressScore: 0, articulationScore: 0 },
+        linguisticProfile: { syntaxScore: 0, morphologyScore: 0, semanticsScore: 0, vocabularyLevel: '-', errorPattern: '-', lexileReport: '-' },
+        shadowingRecords: [], speakingArchive: [],
+        performanceHistory: [{ date: '2026-03-12', score: 55 }, { date: '2026-03-26', score: 59 }, { date: '2026-04-09', score: 61 }, { date: '2026-04-23', score: 64 }]
+      }
+    ];
+
+    const SAMPLE_EXPENSES = [
+      { date: '2026-04-01', category: '프린트비', amount: 3000, memo: '영어 프린트 출력' },
+      { date: '2026-04-03', category: '교재비', amount: 18000, memo: '수학 문제집 구매' },
+      { date: '2026-04-06', category: '카페비', amount: 9000, memo: '대면 수업 카페' }
+    ];
+
+    const SUBJECT_TYPES = {
+      '영어': ['독해 지문 문제', '객관식 문제', '단어 테스트', '문법 문제', '요약 문제'],
+      '수학': ['계산 문제', '개념 문제', '서술형 문제', '함수 문제', '확률 문제'],
+      '국어': ['문학 문제', '비문학 문제', '문법 문제', '표현법 문제', '주관식 문제'],
+      '사회': ['개념 확인 문제', '자료 해석 문제', '사례 적용 문제', '서술형 문제'],
+      '과학': ['개념 문제', '실험 해석 문제', '자료 분석 문제', '현상 설명 문제']
+    };
+
+    let students = loadJson(STORAGE_KEY, SAMPLE_STUDENTS);
+    let expenses = loadJson(EXPENSE_KEY, SAMPLE_EXPENSES);
+    let currentView = 'dashboard';
+    let selectedStudentId = students[0]?.id || null;
+    let uploadedListeningAudioUrl = '';
+    let financeChart;
+    let learningCurveChart;
+
+    const studentListEl = document.getElementById('studentList');
+    const detailSelectEl = document.getElementById('detailStudentSelect');
+    const detailContentEl = document.getElementById('studentDetailContent');
+    const aiStudentSelectEl = document.getElementById('aiStudentSelect');
+    const listeningStudentSelectEl = document.getElementById('listeningStudentSelect');
+    const generatedPromptEl = document.getElementById('generatedPrompt');
+    const generatedMaterialEl = document.getElementById('generatedMaterial');
+    const listeningResultEl = document.getElementById('listeningResult');
+    const listeningScriptEl = document.getElementById('listeningScript');
+    const listeningAudio = document.getElementById('listeningAudio');
+    const expenseTableWrap = document.getElementById('expenseTableWrap');
+    const aiSubjectSelect = document.getElementById('aiSubjectSelect');
+    const aiTypeSelect = document.getElementById('aiTypeSelect');
+
+    function loadJson(key, fallback) {
+      const saved = localStorage.getItem(key);
+      if (!saved) return JSON.parse(JSON.stringify(fallback));
+      try {
+        const parsed = JSON.parse(saved);
+        return Array.isArray(parsed) ? parsed : JSON.parse(JSON.stringify(fallback));
+      } catch {
+        return JSON.parse(JSON.stringify(fallback));
+      }
+    }
+    function saveStudents() { localStorage.setItem(STORAGE_KEY, JSON.stringify(students)); }
+    function saveExpenses() { localStorage.setItem(EXPENSE_KEY, JSON.stringify(expenses)); }
+    function getStudentById(id) { return students.find(s => s.id === id); }
+    function todayClassStudents() { return students.filter(student => /4\/17|금|오늘/i.test(student.nextClass) || /금/.test(student.schedule)); }
+    function escapeHtml(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;'); }
+    function escapeTextarea(v) { return String(v ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+    function formatWon(v) { return `${Number(v || 0).toLocaleString('ko-KR')}원`; }
+
+    function updateTypeOptions() {
+      const subject = aiSubjectSelect.value;
+      const types = SUBJECT_TYPES[subject] || [];
+      aiTypeSelect.innerHTML = types.map(type => `<option>${type}</option>`).join('');
+      document.querySelectorAll('[data-subject-card]').forEach(card => {
+        card.classList.toggle('active', card.dataset.subjectCard === subject);
+      });
+    }
+
+    function calculateMonthlyRevenue() {
+      return students.reduce((sum, s) => sum + Number(s.monthlyFee || 0), 0);
+    }
+    function calculateMonthlyExpense() {
+      return expenses.reduce((sum, item) => sum + Number(item.amount || 0), 0);
+    }
+    function calculateNetProfit() {
+      return calculateMonthlyRevenue() - calculateMonthlyExpense();
+    }
+    function calculateChurnScore(student) {
+      const homeworkRisk = student.homeworkStatus === '미완료' ? 35 : 10;
+      const paymentRisk = student.paymentStatus === '미입금' ? 35 : 5;
+      const progressRisk = Math.max(0, 30 - Math.round((Number(student.progress || 0)) * 0.3));
+      return Math.min(100, homeworkRisk + paymentRisk + progressRisk);
+    }
+    function calculateStudentROI(student) {
+      const revenue = Number(student.monthlyFee || 0);
+      const totalExpenses = calculateMonthlyExpense() / Math.max(1, students.length);
+      const hours = Number(student.monthlyHours || 1);
+      const net = revenue - totalExpenses;
+      const roi = revenue > 0 ? Math.round((net / revenue) * 100) : 0;
+      const hourlyNet = Math.round(net / Math.max(1, hours));
+      return { net, roi, hourlyNet };
+    }
+    function getCounselingKeywords(text) {
+      const keys = ['의욕 저하', '기초 부족', '입시 상담', '집중력', '실수', '복습', '문법', '독해'];
+      return keys.filter(k => text.includes(k));
+    }
+    function getRecommendedWeakTag(student) {
+      const materials = student.savedMaterials || [];
+      const tags = ['주제 추론', '문법', '어휘', '계산 실수', '자료 해석'];
+      for (const tag of tags) {
+        if (materials.some(m => (m.content || '').includes(tag))) return tag;
+      }
+      return '핵심 개념 복습';
+    }
+
+    function renderStats() {
+      document.getElementById('studentCount').textContent = `${students.length}명`;
+      document.getElementById('todayClassCount').textContent = `${todayClassStudents().length}건`;
+      document.getElementById('monthlyExpenseTotal').textContent = formatWon(calculateMonthlyExpense());
+      document.getElementById('netProfitStat').textContent = formatWon(calculateNetProfit());
+      const homeworkIncomplete = students.filter(s => s.homeworkStatus === '미완료').length;
+      const churnWarning = students.filter(s => calculateChurnScore(s) >= 60).length;
+      document.getElementById('homeworkIncompleteCount').textContent = `${homeworkIncomplete}건`;
+      document.getElementById('sidebarTodo').innerHTML = `• 오늘 수업 ${todayClassStudents().length}건<br>• 숙제 미완료 ${homeworkIncomplete}명<br>• 이탈 주의 ${churnWarning}명<br>• 지출 항목 ${expenses.length}건 확인`;
+    }
+
+    function renderFinanceChart() {
+      const ctx = document.getElementById('financeChart');
+      if (!ctx) return;
+      const revenue = calculateMonthlyRevenue();
+      const expense = calculateMonthlyExpense();
+      const labels = ['2월', '3월', '4월'];
+      const revenueData = [Math.round(revenue * 0.82), Math.round(revenue * 0.9), revenue];
+      const expenseData = [Math.round(expense * 0.75), Math.round(expense * 0.88), expense];
+      if (financeChart) financeChart.destroy();
+      financeChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels,
+          datasets: [
+            { label: '매출', data: revenueData },
+            { label: '지출', data: expenseData }
+          ]
+        },
+        options: { responsive: true, plugins: { legend: { display: true } } }
+      });
+    }
+
+    function filterStudents() {
+      const query = document.getElementById('searchInput').value.trim().toLowerCase();
+      const subject = document.getElementById('subjectFilter').value;
+      const status = document.getElementById('statusFilter').value;
+      return students.filter(student => {
+        const queryMatch = !query || student.name.toLowerCase().includes(query) || student.subject.toLowerCase().includes(query);
+        const subjectMatch = subject === 'all' || student.subject === subject;
+        const statusMatch = status === 'all' || (status === 'homeworkIncomplete' && student.homeworkStatus === '미완료') || (status === 'paymentPending' && student.paymentStatus === '미입금') || (status === 'todayClass' && todayClassStudents().some(s => s.id === student.id));
+        return queryMatch && subjectMatch && statusMatch;
+      });
+    }
+
+    function renderStudentList() {
+      const filtered = filterStudents();
+      if (!filtered.length) { studentListEl.innerHTML = '<div class="empty-state">조건에 맞는 학생이 없어요.</div>'; return; }
+      studentListEl.innerHTML = filtered.map(student => {
+        const churn = calculateChurnScore(student);
+        const roi = calculateStudentROI(student);
+        return `
+        <article class="student-card">
+          <div class="student-top">
+            <div>
+              <div class="student-name">${escapeHtml(student.name)}</div>
+              <div class="student-meta">${escapeHtml(student.grade)} · ${escapeHtml(student.subject)} · ${escapeHtml(student.mode)}<br>${escapeHtml(student.schedule)}</div>
+            </div>
+            <div class="badge-group">
+              <span class="badge ${student.homeworkStatus==='완료'?'badge-green':'badge-yellow'}">숙제 ${escapeHtml(student.homeworkStatus)}</span>
+              <span class="badge ${student.paymentStatus==='완료'?'badge-green':'badge-red'}">${student.paymentStatus==='완료'?'입금 완료':'입금 대기'}</span>
+              <span class="badge ${churn >= 60 ? 'badge-red' : 'badge-pink'}">이탈위험 ${churn}</span>
+            </div>
+          </div>
+          <div class="grid-3">
+            <div class="mini-box"><div class="mini-title">다음 수업</div><div class="mini-content">${escapeHtml(student.nextClass)}</div></div>
+            <div class="mini-box"><div class="mini-title">최근 진도</div><div class="mini-content">${escapeHtml(student.recentTopic)}</div></div>
+            <div class="mini-box"><div class="mini-title">학생 메모</div><div class="mini-content">${escapeHtml(student.note || '메모 없음')}</div></div>
+            <div class="mini-box"><div class="mini-title">월 수업료</div><div class="mini-content">${formatWon(student.monthlyFee || 0)}</div></div>
+            <div class="mini-box"><div class="mini-title">ROI</div><div class="mini-content">${roi.roi}%</div></div>
+            <div class="mini-box"><div class="mini-title">상담 키워드</div><div class="mini-content">${escapeHtml(getCounselingKeywords((student.counselingMemo || '') + ' ' + (student.note || '')).join(', ') || '없음')}</div></div>
+          </div>
+          <div class="progress-wrap"><div class="progress-label"><span>목표 달성도</span><strong>${Number(student.progress)||0}%</strong></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, Number(student.progress)||0))}%"></div></div></div>
+          <div style="margin-top:14px; display:flex; gap:10px; flex-wrap:wrap;"><button class="btn btn-primary" onclick="openStudentDetail('${student.id}')">학생 페이지 보기</button><button class="btn btn-danger" onclick="deleteStudent('${student.id}')">삭제</button></div>
+        </article>`;
+      }).join('');
+    }
+
+    function renderStudentSelects() {
+      const options = students.map(student => `<option value="${student.id}">${escapeHtml(student.name)} · ${escapeHtml(student.subject)}</option>`).join('');
+      detailSelectEl.innerHTML = options || '<option>학생 없음</option>';
+      aiStudentSelectEl.innerHTML = '<option value="">학생 선택</option>' + options;
+      listeningStudentSelectEl.innerHTML = '<option value="">학생 선택</option>' + options;
+      if (selectedStudentId && getStudentById(selectedStudentId)) detailSelectEl.value = selectedStudentId;
+      else if (students[0]) { selectedStudentId = students[0].id; detailSelectEl.value = selectedStudentId; }
+    }
+
+    function renderSimpleRows(list, emptyText, columns) {
+      if (!list || !list.length) return `<div class="empty-state">${escapeHtml(emptyText)}</div>`;
+      return `<table class="list-table"><thead><tr>${columns.map(c=>`<th>${escapeHtml(c.label)}</th>`).join('')}</tr></thead><tbody>${list.map(item=>`<tr>${columns.map(c=>`<td>${escapeHtml(item[c.key] ?? '')}</td>`).join('')}</tr>`).join('')}</tbody></table>`;
+    }
+
+    function renderLearningCurveChart(student) {
+      setTimeout(() => {
+        const canvas = document.getElementById('learningCurveChart');
+        if (!canvas) return;
+        if (learningCurveChart) learningCurveChart.destroy();
+        const history = student.performanceHistory || [];
+        learningCurveChart = new Chart(canvas, {
+          type: 'line',
+          data: {
+            labels: history.map(h => h.date),
+            datasets: [{ label: '학습 성취도', data: history.map(h => h.score), tension: 0.3 }]
+          },
+          options: { responsive: true, plugins: { legend: { display: true } } }
+        });
+      }, 0);
+    }
+
+    function renderStudentDetail() {
+      const student = getStudentById(selectedStudentId) || students[0];
+      if (!student) { detailContentEl.innerHTML = '<div class="empty-state">학생을 먼저 등록해 주세요.</div>'; return; }
+      selectedStudentId = student.id;
+      detailSelectEl.value = student.id;
+      const phon = student.phoneticsLog || { difficultSounds: [], avgWPM: 0, intonationScore: 0, stressScore: 0, articulationScore: 0 };
+      const ling = student.linguisticProfile || { syntaxScore: 0, morphologyScore: 0, semanticsScore: 0, vocabularyLevel: '-', errorPattern: '-', lexileReport: '-' };
+      const churn = calculateChurnScore(student);
+      const roi = calculateStudentROI(student);
+      const keywords = getCounselingKeywords((student.counselingMemo || '') + ' ' + (student.note || ''));
+      detailContentEl.innerHTML = `
+        <div class="grid-4" style="margin-bottom:16px;">
+          <div class="detail-box"><div class="detail-title">월 수업료</div><div class="detail-content">${formatWon(student.monthlyFee || 0)}</div></div>
+          <div class="detail-box"><div class="detail-title">순수익</div><div class="detail-content">${formatWon(roi.net)}</div></div>
+          <div class="detail-box"><div class="detail-title">ROI</div><div class="detail-content">${roi.roi}%</div></div>
+          <div class="detail-box"><div class="detail-title">이탈 위험도</div><div class="detail-content">${churn}</div></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="detail-box"><div class="detail-title">기본 정보</div><div class="detail-content">${escapeHtml(student.grade)} · ${escapeHtml(student.subject)} · ${escapeHtml(student.mode)}<br>${escapeHtml(student.schedule)}<br>${escapeHtml(student.location)}</div></div>
+          <div class="detail-box"><div class="detail-title">상담 키워드 마이닝</div><div class="detail-content">${escapeHtml(keywords.join(', ') || '키워드 없음')}</div></div>
+        </div>
+        <div class="panel" style="margin-bottom:18px;">
+          <div class="panel-header"><h3>학습 곡선 시각화</h3><span class="muted">시계열 성취도 분석</span></div>
+          <div class="chart-box"><canvas id="learningCurveChart" height="110"></canvas></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:16px;">
+          <div class="detail-box full"><div class="detail-title">다음 시간에 쓸 자료</div><textarea id="detail-nextMaterial">${escapeTextarea(student.nextMaterial || '')}</textarea></div>
+          <div class="detail-box"><div class="detail-title">상담 메모</div><textarea id="detail-counselingMemo">${escapeTextarea(student.counselingMemo || '')}</textarea></div>
+          <div class="detail-box"><div class="detail-title">테스트 계획</div><textarea id="detail-testPlan">${escapeTextarea(student.testPlan || '')}</textarea></div>
+          <div class="detail-box full"><div class="detail-title">기타 학생 메모</div><textarea id="detail-note">${escapeTextarea(student.note || '')}</textarea></div>
+        </div>
+        <div class="grid-2" style="margin-bottom:18px;">
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-header"><h3>음성학 / 스피킹 분석</h3></div>
+            <div class="grid-2">
+              <div class="detail-box"><div class="detail-title">취약 음소</div><div class="detail-content">${escapeHtml((phon.difficultSounds || []).join(', ') || '없음')}</div></div>
+              <div class="detail-box"><div class="detail-title">평균 WPM</div><div class="detail-content">${escapeHtml(String(phon.avgWPM || 0))}</div></div>
+              <div class="detail-box"><div class="detail-title">억양 점수</div><div class="detail-content">${escapeHtml(String(phon.intonationScore || 0))}</div></div>
+              <div class="detail-box"><div class="detail-title">강세 점수</div><div class="detail-content">${escapeHtml(String(phon.stressScore || 0))}</div></div>
+              <div class="detail-box full"><div class="detail-title">조음 완성도</div><div class="progress-wrap"><div class="progress-label"><span>Articulatory Index</span><strong>${escapeHtml(String(phon.articulationScore || 0))}</strong></div><div class="progress-bar"><div class="progress-fill" style="width:${Math.max(0, Math.min(100, Number(phon.articulationScore) || 0))}%"></div></div></div></div>
+            </div>
+            <div class="grid-4" style="margin-top:12px;">
+              <input type="text" id="phonDifficultSounds" placeholder="예: [r], [θ], [f]" value="${escapeTextarea((phon.difficultSounds || []).join(', '))}" />
+              <input type="number" id="phonAvgWPM" placeholder="WPM" min="0" value="${escapeTextarea(String(phon.avgWPM || 0))}" />
+              <input type="number" id="phonIntonation" placeholder="억양 점수" min="0" max="100" value="${escapeTextarea(String(phon.intonationScore || 0))}" />
+              <input type="number" id="phonStress" placeholder="강세 점수" min="0" max="100" value="${escapeTextarea(String(phon.stressScore || 0))}" />
+              <input class="full" type="number" id="phonArticulation" placeholder="조음 완성도" min="0" max="100" value="${escapeTextarea(String(phon.articulationScore || 0))}" />
+            </div>
+          </div>
+          <div class="panel" style="margin-bottom:0;">
+            <div class="panel-header"><h3>영어 교육 / 코퍼스 분석</h3></div>
+            <div class="grid-2">
+              <div class="detail-box"><div class="detail-title">Syntax</div><div class="detail-content">${escapeHtml(String(ling.syntaxScore || 0))}</div></div>
+              <div class="detail-box"><div class="detail-title">Morphology</div><div class="detail-content">${escapeHtml(String(ling.morphologyScore || 0))}</div></div>
+              <div class="detail-box"><div class="detail-title">Semantics</div><div class="detail-content">${escapeHtml(String(ling.semanticsScore || 0))}</div></div>
+              <div class="detail-box"><div class="detail-title">Vocabulary Level</div><div class="detail-content">${escapeHtml(ling.vocabularyLevel || '-')}</div></div>
+              <div class="detail-box"><div class="detail-title">오류 패턴</div><div class="detail-content">${escapeHtml(ling.errorPattern || '-')}</div></div>
+              <div class="detail-box"><div class="detail-title">Lexile / CEFR 리포트</div><div class="detail-content">${escapeHtml(ling.lexileReport || '-')}</div></div>
+            </div>
+            <div class="grid-3" style="margin-top:12px;">
+              <input type="number" id="lingSyntax" placeholder="Syntax" min="0" max="100" value="${escapeTextarea(String(ling.syntaxScore || 0))}" />
+              <input type="number" id="lingMorphology" placeholder="Morphology" min="0" max="100" value="${escapeTextarea(String(ling.morphologyScore || 0))}" />
+              <input type="number" id="lingSemantics" placeholder="Semantics" min="0" max="100" value="${escapeTextarea(String(ling.semanticsScore || 0))}" />
+              <input type="text" id="lingVocabularyLevel" placeholder="예: B2" value="${escapeTextarea(ling.vocabularyLevel || '-')}" />
+              <input type="text" id="lingErrorPattern" placeholder="예: Tense Agreement" value="${escapeTextarea(ling.errorPattern || '-')}" />
+              <input type="text" id="lingLexileReport" placeholder="예: 고1 수준 어휘 70% 점유" value="${escapeTextarea(ling.lexileReport || '-')}" />
+            </div>
+          </div>
+        </div>
+        <div style="margin-bottom:16px;"><button class="btn btn-primary" onclick="saveStudentDetail('${student.id}')">학생 페이지 저장</button></div>
+        <div class="panel" style="margin-bottom:0;">
+          <div class="panel-header"><h3>학생에게 저장된 자료</h3></div>
+          ${student.savedMaterials && student.savedMaterials.length ? renderSimpleRows(student.savedMaterials.map(item => ({ savedAt: item.savedAt, type: item.type, topic: item.topic, preview: (item.content || '').slice(0, 60) })), '저장된 자료가 없습니다.', [{label:'저장일',key:'savedAt'},{label:'유형',key:'type'},{label:'주제',key:'topic'},{label:'내용 미리보기',key:'preview'}]) : '<div class="empty-state">저장된 자료가 없습니다.</div>'}
+        </div>
+      `;
+      renderLearningCurveChart(student);
+    }
+
+    function renderExpenses() {
+      if (!expenses.length) {
+        expenseTableWrap.innerHTML = '<div class="empty-state">지출 기록이 없습니다.</div>';
+        return;
+      }
+      expenseTableWrap.innerHTML = renderSimpleRows(expenses.map(item => ({ ...item, amount: formatWon(item.amount) })), '지출 기록이 없습니다.', [
+        { label: '날짜', key: 'date' },
+        { label: '카테고리', key: 'category' },
+        { label: '금액', key: 'amount' },
+        { label: '메모', key: 'memo' }
+      ]);
+    }
+
+    function saveStudentDetail(id) {
+      const student = getStudentById(id);
+      if (!student) return;
+      student.nextMaterial = document.getElementById('detail-nextMaterial').value;
+      student.counselingMemo = document.getElementById('detail-counselingMemo').value;
+      student.testPlan = document.getElementById('detail-testPlan').value;
+      student.note = document.getElementById('detail-note').value;
+      student.phoneticsLog = {
+        difficultSounds: document.getElementById('phonDifficultSounds').value.split(',').map(v => v.trim()).filter(Boolean),
+        avgWPM: Number(document.getElementById('phonAvgWPM').value || 0),
+        intonationScore: Number(document.getElementById('phonIntonation').value || 0),
+        stressScore: Number(document.getElementById('phonStress').value || 0),
+        articulationScore: Number(document.getElementById('phonArticulation').value || 0)
+      };
+      student.linguisticProfile = {
+        syntaxScore: Number(document.getElementById('lingSyntax').value || 0),
+        morphologyScore: Number(document.getElementById('lingMorphology').value || 0),
+        semanticsScore: Number(document.getElementById('lingSemantics').value || 0),
+        vocabularyLevel: document.getElementById('lingVocabularyLevel').value,
+        errorPattern: document.getElementById('lingErrorPattern').value,
+        lexileReport: document.getElementById('lingLexileReport').value
+      };
+      saveStudents();
+      renderAll();
+      alert('학생 페이지 내용을 저장했어요.');
+    }
+
+    function generatePrompt() {
+      const student = getStudentById(aiStudentSelectEl.value);
+      const subject = aiSubjectSelect.value;
+      const type = aiTypeSelect.value;
+      const examStyle = document.getElementById('examStyleSelect').value;
+      const gradeLevel = document.getElementById('gradeLevelSelect').value;
+      const level = document.getElementById('aiLevelSelect').value;
+      const count = document.getElementById('questionCountSelect').value;
+      const format = document.getElementById('problemFormatSelect').value;
+      const topic = document.getElementById('aiTopicInput').value.trim();
+      const request = document.getElementById('aiRequestInput').value.trim();
+      const weakTag = student ? getRecommendedWeakTag(student) : '핵심 개념 복습';
+      const prompt = `전과목 고퀄 문제 제작 요청\n학생: ${student ? `${student.name}, ${student.grade}, ${student.subject}` : '미지정'}\n과목: ${subject}\n출제 유형: ${type}\n시험 스타일: ${examStyle}\n학년: ${gradeLevel}\n난이도: ${level}\n문항 수: ${count}\n문제 형식: ${format}\n주제/범위: ${topic || '미입력'}\n최근 진도: ${student?.recentTopic || '미입력'}\n추가 요청: ${request || '없음'}\n언어학/교육 분석 요청: 이 지문에서 한국인 학습자가 발음하기 어려운 핵심 단어(Target Words) 5개를 추출하고, CEFR 또는 Lexile 기준 어휘 난이도와 오답 가능 구문 포인트를 함께 제시할 것.\n추천 엔진 보정: 학생의 이전 오답 유형 태그는 '${weakTag}'이며, 다음 문제 생성 시 이 유형의 비중을 더 높일 것.\n요구사항: 학생 수준에 맞는 문제, 정답, 해설을 제공할 것.`;
+      generatedPromptEl.value = prompt;
+      return prompt;
+    }
+
+    function buildEnglishProblem(examStyle, gradeLevel, level, topic, type, count, weakTag) {
+      const n = parseInt(count, 10) || 1;
+      const problems = [];
+      for (let i = 0; i < n; i++) {
+        if ((topic + type + weakTag).includes('주제')) {
+          problems.push(`[지문 ${i+1}]\nMany students think that getting good grades depends only on studying for long hours. However, many teachers say that how students study is more important than how long they study. Students who review regularly and ask questions often learn more deeply than those who just sit longer.\n\n[문제 ${i+1}] What is the main idea of the passage?\n① Long study hours always guarantee success.\n② Study quality matters more than study time.\n③ Teachers give too much homework.\n④ Students should never take breaks.\n⑤ Asking questions lowers confidence.\n정답: ②\n해설: 글은 공부 시간보다 공부 방법과 질이 더 중요하다고 말한다.\nTarget Words: regularly, concentration, guarantee, quality, confidence\nCEFR/Lexile: B1~B2 수준\n오답 가능 구문: than 비교구문, that절 핵심내용 파악`);
+        } else {
+          problems.push(`[지문 ${i+1}]\nReading is useful not only for academic success but also for personal growth. Through books, students can experience different ideas and cultures, which helps them become more thoughtful and open-minded.\n\n[문제 ${i+1}] What is the writer's main point?\n① Reading is useful only for tests.\n② Reading supports both study and growth.\n③ Students should read less fiction.\n④ Culture is unrelated to books.\n⑤ Personal growth is impossible through reading.\n정답: ②\n해설: 글은 독서가 학업과 개인 성장 모두에 도움이 된다고 말한다.\nTarget Words: academic, culture, thoughtful, open-minded, growth\nCEFR/Lexile: B1 수준\n오답 가능 구문: not only A but also B 구조`);
+        }
+      }
+      return `${gradeLevel} ${examStyle} ${level} 영어 ${type}\n범위: ${topic || '기본 범위'}\n추천 강화 태그: ${weakTag}\n\n${problems.join('\n\n')}`;
+    }
+
+    function buildMathProblem(examStyle, gradeLevel, level, topic, type, count, weakTag) {
+      const n = parseInt(count, 10) || 1;
+      const problems = [];
+      for (let i = 0; i < n; i++) {
+        if ((topic + type + weakTag).includes('함수')) {
+          const a = i + 2, b = i + 5, x = i + 3;
+          problems.push(`[문제 ${i+1}] 함수 y = ${a}x + ${b}에서 x = ${x}일 때 y의 값을 구하시오.\n정답: ${a*x+b}\n해설: y = ${a}×${x} + ${b} = ${a*x+b}`);
+        } else if ((topic + type).includes('확률')) {
+          problems.push(`[문제 ${i+1}] 주사위를 한 번 던질 때 짝수가 나올 확률을 구하시오.\n정답: 1/2\n해설: 전체 경우의 수는 6, 짝수는 3개이므로 3/6 = 1/2이다.`);
+        } else {
+          const a = i + 3, b = i + 7, c = i + 11;
+          const ans = (c + b) / a;
+          problems.push(`[문제 ${i+1}] 방정식 ${a}x - ${b} = ${c}를 풀어라.\n정답: x = ${ans}\n해설: 양변에 ${b}를 더하면 ${a}x = ${c + b}, 양변을 ${a}로 나누면 x = ${ans}`);
+        }
+      }
+      return `${gradeLevel} ${examStyle} ${level} 수학 ${type}\n범위: ${topic || '기본 범위'}\n추천 강화 태그: ${weakTag}\n\n${problems.join('\n\n')}`;
+    }
+
+    function buildKoreanProblem(examStyle, gradeLevel, level, topic, type, count, weakTag) {
+      const n = parseInt(count, 10) || 1;
+      const problems = [];
+      for (let i = 0; i < n; i++) {
+        problems.push(`[문제 ${i+1}] 글의 중심 내용을 파악하는 방법으로 가장 적절한 것은?\n① 예시만 본다\n② 반복되는 핵심어를 찾는다\n③ 첫 문장만 본다\n④ 글자 수를 센다\n정답: ②\n해설: 중심 내용은 반복되는 핵심어와 중심 문장에서 드러나는 경우가 많다.`);
+      }
+      return `${gradeLevel} ${examStyle} ${level} 국어 ${type}\n범위: ${topic || '기본 범위'}\n추천 강화 태그: ${weakTag}\n\n${problems.join('\n\n')}`;
+    }
+
+    function buildSocialProblem(examStyle, gradeLevel, level, topic, type, count, weakTag) {
+      const n = parseInt(count, 10) || 1;
+      const problems = [];
+      for (let i = 0; i < n; i++) {
+        problems.push(`[문제 ${i+1}] 사회 문화 변동의 특징으로 가장 적절한 것은?\n① 항상 같은 속도로 일어난다\n② 한 사회 안에서 다양한 요인의 영향을 받는다\n③ 개인의 노력과는 무관하다\n④ 문화 요소는 절대 변하지 않는다\n정답: ②\n해설: 사회 문화 변동은 기술, 가치관, 제도 등 다양한 요인의 영향을 받는다.`);
+      }
+      return `${gradeLevel} ${examStyle} ${level} 사회 ${type}\n범위: ${topic || '기본 범위'}\n추천 강화 태그: ${weakTag}\n\n${problems.join('\n\n')}`;
+    }
+
+    function buildScienceProblem(examStyle, gradeLevel, level, topic, type, count, weakTag) {
+      const n = parseInt(count, 10) || 1;
+      const problems = [];
+      for (let i = 0; i < n; i++) {
+        problems.push(`[문제 ${i+1}] 실험에서 변인 통제를 해야 하는 이유로 가장 적절한 것은?\n① 실험 시간을 줄이기 위해서\n② 결과의 원인을 더 정확히 파악하기 위해서\n③ 실험 도구를 적게 사용하기 위해서\n④ 관찰 기록을 생략하기 위해서\n정답: ②\n해설: 변인을 통제해야 결과가 어떤 요인 때문에 나타났는지 더 정확히 알 수 있다.`);
+      }
+      return `${gradeLevel} ${examStyle} ${level} 과학 ${type}\n범위: ${topic || '기본 범위'}\n추천 강화 태그: ${weakTag}\n\n${problems.join('\n\n')}`;
+    }
+
+    function generateProblems() {
+      const student = getStudentById(aiStudentSelectEl.value);
+      const weakTag = student ? getRecommendedWeakTag(student) : '핵심 개념 복습';
+      const subject = aiSubjectSelect.value;
+      const examStyle = document.getElementById('examStyleSelect').value;
+      const gradeLevel = document.getElementById('gradeLevelSelect').value;
+      const type = aiTypeSelect.value;
+      const level = document.getElementById('aiLevelSelect').value;
+      const count = document.getElementById('questionCountSelect').value;
+      const topic = document.getElementById('aiTopicInput').value.trim();
+      let output = '';
+      if (subject === '영어') output = buildEnglishProblem(examStyle, gradeLevel, level, topic, type, count, weakTag);
+      else if (subject === '수학') output = buildMathProblem(examStyle, gradeLevel, level, topic, type, count, weakTag);
+      else if (subject === '국어') output = buildKoreanProblem(examStyle, gradeLevel, level, topic, type, count, weakTag);
+      else if (subject === '사회') output = buildSocialProblem(examStyle, gradeLevel, level, topic, type, count, weakTag);
+      else if (subject === '과학') output = buildScienceProblem(examStyle, gradeLevel, level, topic, type, count, weakTag);
+      generatedMaterialEl.value = output;
+    }
+
+    function generateListeningProblem() {
+      const student = getStudentById(listeningStudentSelectEl.value);
+      const level = document.getElementById('listeningLevelSelect').value;
+      const type = document.getElementById('listeningQuestionType').value;
+      const topic = document.getElementById('listeningTopicInput').value.trim() || 'school';
+      let script = '';
+      let problem = '';
+      if (type === '시간 파악하기') {
+        script = 'W: What time does the library open? M: It opens at nine in the morning.';
+        problem = `문제: 도서관은 몇 시에 문을 엽니까?\n① 8시 ② 9시 ③ 10시 ④ 11시\n정답: ②`;
+      } else if (type === '장소 파악하기') {
+        script = 'M: Can I borrow this book today? W: Sure. Please return it by Friday.';
+        problem = `문제: 두 사람이 있는 장소로 가장 알맞은 것은?\n① 식당 ② 도서관 ③ 병원 ④ 공원\n정답: ②`;
+      } else if (type === '의도 파악하기') {
+        script = 'W: You look tired. Why do not you take a short break? M: That sounds like a good idea.';
+        problem = `문제: 여자의 의도로 가장 알맞은 것은?\n① 사과 ② 충고 ③ 초대 ④ 부탁\n정답: ②`;
+      } else {
+        script = 'W: Did you finish your homework? M: Not yet. I will do it after dinner.';
+        problem = `문제: 남자가 저녁 후에 할 일은 무엇입니까?\n① 숙제하기 ② 운동하기 ③ 독서하기 ④ 청소하기\n정답: ①`;
+      }
+      listeningScriptEl.value = `${student ? student.name + ' 학생용 ' : ''}${level} 듣기평가 스크립트\n주제: ${topic}\n\n${script}`;
+      listeningResultEl.value = `${student ? student.name + ' 학생용 ' : ''}${level} 듣기평가 문제\n주제: ${topic}\n\n${problem}`;
+      const utter = new SpeechSynthesisUtterance(script);
+      utter.lang = 'en-US';
+      utter.rate = level === '쉬움' ? 0.8 : level === '어려움' ? 1.0 : 0.9;
+      window._listeningUtterance = utter;
+    }
+
+    async function copyText(text) {
+      try { await navigator.clipboard.writeText(text); alert('복사했어요.'); }
+      catch { alert('복사에 실패했어요.'); }
+    }
+
+    function saveResultToStudent() {
+      const student = getStudentById(aiStudentSelectEl.value);
+      if (!student) return alert('저장할 학생을 먼저 선택해 주세요.');
+      const content = generatedMaterialEl.value.trim();
+      if (!content) return alert('저장할 생성 결과가 없어요.');
+      if (!Array.isArray(student.savedMaterials)) student.savedMaterials = [];
+      student.savedMaterials.unshift({
+        savedAt: new Date().toISOString().slice(0,10),
+        type: aiTypeSelect.value,
+        topic: document.getElementById('aiTopicInput').value.trim() || '미입력',
+        content
+      });
+      saveStudents();
+      renderAll();
+      alert(`${student.name} 학생에게 자료를 저장했어요.`);
+    }
+
+    function saveListeningToStudent() {
+      const student = getStudentById(listeningStudentSelectEl.value);
+      if (!student) return alert('저장할 학생을 먼저 선택해 주세요.');
+      const content = listeningResultEl.value.trim();
+      const script = listeningScriptEl.value.trim();
+      if (!content || !script) return alert('먼저 듣기평가 문제를 만들어 주세요.');
+      if (!Array.isArray(student.savedMaterials)) student.savedMaterials = [];
+      student.savedMaterials.unshift({
+        savedAt: new Date().toISOString().slice(0,10),
+        type: '듣기평가 문제',
+        topic: document.getElementById('listeningTopicInput').value.trim() || '미입력',
+        content: `${content}\n\n[스크립트]\n${script}`
+      });
+      saveStudents();
+      renderAll();
+      alert(`${student.name} 학생에게 듣기평가 자료를 저장했어요.`);
+    }
+
+    function addExpense() {
+      const date = document.getElementById('expenseDate').value;
+      const category = document.getElementById('expenseCategory').value;
+      const amount = Number(document.getElementById('expenseAmount').value);
+      const memo = document.getElementById('expenseMemo').value.trim();
+      if (!date || !amount) return alert('날짜와 금액을 입력해 주세요.');
+      expenses.unshift({ date, category, amount, memo });
+      saveExpenses();
+      document.getElementById('expenseDate').value = '';
+      document.getElementById('expenseAmount').value = '';
+      document.getElementById('expenseMemo').value = '';
+      renderAll();
+    }
+
+    function switchView(view) {
+      currentView = view;
+      document.querySelectorAll('.menu button').forEach(btn => btn.classList.toggle('active', btn.dataset.view === view));
+      document.querySelectorAll('.view-section').forEach(section => {
+        const targets = section.dataset.section.split(' ');
+        section.classList.toggle('hidden', !targets.includes(view));
+      });
+    }
+
+    function openStudentDetail(id) {
+      selectedStudentId = id;
+      renderStudentDetail();
+      switchView('student-detail');
+    }
+
+    function deleteStudent(id) {
+      const target = getStudentById(id);
+      if (!target) return;
+      if (!confirm(`${target.name} 학생을 삭제할까요?`)) return;
+      students = students.filter(s => s.id !== id);
+      if (selectedStudentId === id) selectedStudentId = students[0]?.id || null;
+      saveStudents();
+      renderAll();
+    }
+
+    function renderAll() {
+      renderStats();
+      renderStudentList();
+      renderStudentSelects();
+      renderStudentDetail();
+      renderExpenses();
+      updateTypeOptions();
+      renderFinanceChart();
+      switchView(currentView);
+    }
+
+    window.switchView = switchView;
+    window.openStudentDetail = openStudentDetail;
+    window.deleteStudent = deleteStudent;
+    window.saveStudentDetail = saveStudentDetail;
+
+    document.getElementById('goAddBtn').addEventListener('click', () => switchView('student-add'));
+    document.getElementById('resetSampleBtn').addEventListener('click', () => {
+      if (!confirm('현재 데이터를 지우고 샘플 데이터로 복원할까요?')) return;
+      students = JSON.parse(JSON.stringify(SAMPLE_STUDENTS));
+      expenses = JSON.parse(JSON.stringify(SAMPLE_EXPENSES));
+      selectedStudentId = students[0]?.id || null;
+      saveStudents(); saveExpenses(); renderAll();
+    });
+
+    document.getElementById('searchInput').addEventListener('input', renderStudentList);
+    document.getElementById('subjectFilter').addEventListener('change', renderStudentList);
+    document.getElementById('statusFilter').addEventListener('change', renderStudentList);
+    detailSelectEl.addEventListener('change', e => { selectedStudentId = e.target.value; renderStudentDetail(); });
+    document.querySelectorAll('.menu button').forEach(button => button.addEventListener('click', () => switchView(button.dataset.view)));
+    document.querySelectorAll('[data-subject-card]').forEach(card => {
+      card.addEventListener('click', () => {
+        aiSubjectSelect.value = card.dataset.subjectCard;
+        updateTypeOptions();
+      });
+    });
+    aiSubjectSelect.addEventListener('change', updateTypeOptions);
+
+    document.getElementById('studentForm').addEventListener('submit', e => {
+      e.preventDefault();
+      const newStudent = {
+        id: crypto.randomUUID(),
+        name: document.getElementById('studentName').value.trim(),
+        grade: document.getElementById('studentGrade').value.trim(),
+        subject: document.getElementById('studentSubject').value,
+        mode: document.getElementById('studentMode').value,
+        phone: document.getElementById('studentPhone').value.trim(),
+        parentPhone: document.getElementById('parentPhone').value.trim(),
+        schedule: document.getElementById('studentSchedule').value.trim(),
+        location: document.getElementById('studentLocation').value.trim(),
+        monthlyFee: Number(document.getElementById('studentMonthlyFee').value || 0),
+        monthlyHours: Number(document.getElementById('studentMonthlyHours').value || 0),
+        nextClass: document.getElementById('nextClass').value.trim(),
+        progress: Number(document.getElementById('progress').value),
+        recentTopic: document.getElementById('recentTopic').value.trim(),
+        homework: document.getElementById('homework').value.trim(),
+        homeworkStatus: document.getElementById('homeworkStatus').value,
+        paymentStatus: document.getElementById('paymentStatus').value,
+        note: document.getElementById('studentNote').value.trim(),
+        nextMaterial: '', counselingMemo: '', testPlan: '', savedMaterials: [],
+        phoneticsLog: { difficultSounds: [], avgWPM: 0, intonationScore: 0, stressScore: 0, articulationScore: 0 },
+        linguisticProfile: { syntaxScore: 0, morphologyScore: 0, semanticsScore: 0, vocabularyLevel: '-', errorPattern: '-', lexileReport: '-' },
+        shadowingRecords: [], speakingArchive: [],
+        performanceHistory: [{ date: new Date().toISOString().slice(0,10), score: Number(document.getElementById('progress').value) }]
+      };
+      students.unshift(newStudent);
+      selectedStudentId = newStudent.id;
+      saveStudents();
+      e.target.reset();
+      renderAll();
+      alert('학생을 저장했어요.');
+    });
+
+    document.getElementById('generatePromptBtn').addEventListener('click', generatePrompt);
+    document.getElementById('generateAiProblemBtn').addEventListener('click', generateProblems);
+    document.getElementById('copyPromptBtn').addEventListener('click', () => copyText(generatedPromptEl.value));
+    document.getElementById('copyResultBtn').addEventListener('click', () => copyText(generatedMaterialEl.value));
+    document.getElementById('saveResultToStudentBtn').addEventListener('click', saveResultToStudent);
+    document.getElementById('printPdfBtn').addEventListener('click', () => window.print());
+
+    document.getElementById('generateListeningBtn').addEventListener('click', generateListeningProblem);
+    document.getElementById('playListeningBtn').addEventListener('click', () => {
+      if (uploadedListeningAudioUrl) { listeningAudio.play(); return; }
+      if (window._listeningUtterance) {
+        speechSynthesis.cancel();
+        speechSynthesis.speak(window._listeningUtterance);
+      } else if (listeningScriptEl.value.trim()) {
+        const utter = new SpeechSynthesisUtterance(listeningScriptEl.value.trim());
+        utter.lang = 'en-US';
+        speechSynthesis.cancel();
+        speechSynthesis.speak(utter);
+      } else {
+        alert('먼저 듣기평가 문제를 만들어 주세요.');
+      }
+    });
+    document.getElementById('pauseListeningBtn').addEventListener('click', () => {
+      if (uploadedListeningAudioUrl) {
+        if (listeningAudio.paused) listeningAudio.play(); else listeningAudio.pause();
+        return;
+      }
+      if (speechSynthesis.speaking && !speechSynthesis.paused) speechSynthesis.pause();
+      else if (speechSynthesis.paused) speechSynthesis.resume();
+    });
+    document.getElementById('stopListeningBtn').addEventListener('click', () => {
+      speechSynthesis.cancel();
+      listeningAudio.pause();
+      listeningAudio.currentTime = 0;
+    });
+    document.getElementById('saveListeningToStudentBtn').addEventListener('click', saveListeningToStudent);
+    document.getElementById('listeningAudioFile').addEventListener('change', e => {
+      const file = e.target.files?.[0];
+      if (!file) return;
+      if (uploadedListeningAudioUrl) URL.revokeObjectURL(uploadedListeningAudioUrl);
+      uploadedListeningAudioUrl = URL.createObjectURL(file);
+      listeningAudio.src = uploadedListeningAudioUrl;
+      alert('오디오 파일을 불러왔어요. 재생 버튼으로 확인해 보세요.');
+    });
+
+    document.getElementById('addExpenseBtn').addEventListener('click', addExpense);
+
+    renderAll();
+  </script>
+</body>
+</html>
