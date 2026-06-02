@@ -1,0 +1,2129 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Teacher Trail Board</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Black+Han+Sans&family=Do+Hyeon&family=Noto+Sans+KR:wght@400;500;600;700&family=Roboto+Mono:wght@400;500;700&family=Staatliches&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #d9ded9;
+      --ink: #293129;
+      --muted: #738071;
+      --line: rgba(41, 49, 41, 0.24);
+      --panel: #263126;
+      --panel-soft: rgba(38, 49, 38, 0.91);
+      --cream: #e9ffd4;
+      --green: #bff2b1;
+      --paper: rgba(230, 234, 226, 0.72);
+      --shadow: rgba(26, 32, 26, 0.16);
+      --danger: #8a4b3a;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(rgba(41, 49, 41, 0.07) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(41, 49, 41, 0.07) 1px, transparent 1px),
+        var(--bg);
+      background-size: 18vw 100vh, 100vw 17vh;
+      color: var(--ink);
+      font-family: "Roboto Mono", monospace;
+      overflow: hidden;
+    }
+
+    .app {
+      display: grid;
+      grid-template-columns: 300px 1fr;
+      min-height: 100vh;
+    }
+
+    aside {
+      position: relative;
+      padding: 28px 26px 18px;
+      border-right: 1px solid var(--line);
+      background: rgba(217, 222, 217, 0.97);
+      z-index: 10;
+    }
+
+    .brand-small {
+      font-size: 13px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 36px;
+    }
+
+    .menu-title {
+      font-size: 10px;
+      letter-spacing: 0.45em;
+      writing-mode: vertical-rl;
+      transform: rotate(180deg);
+      position: absolute;
+      right: 16px;
+      top: 300px;
+      color: var(--muted);
+    }
+
+    nav {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 26px;
+    }
+
+    .nav-item {
+      display: grid;
+      grid-template-columns: 24px 1fr;
+      align-items: center;
+      gap: 13px;
+      font-size: 13px;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--ink);
+      cursor: pointer;
+      opacity: 0.82;
+      transition: 0.2s ease;
+      user-select: none;
+    }
+
+    .nav-item:hover,
+    .nav-item.active {
+      opacity: 1;
+      transform: translateX(4px);
+    }
+
+    .nav-item.active span:last-child {
+      text-decoration: underline;
+      text-underline-offset: 5px;
+    }
+
+    .nav-icon {
+      width: 22px;
+      height: 22px;
+      display: grid;
+      place-items: center;
+      font-size: 17px;
+      filter: grayscale(1);
+    }
+
+    .legend {
+      margin-top: 18px;
+      padding-top: 18px;
+      border-top: 1px solid var(--line);
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      font-size: 11px;
+      color: var(--ink);
+    }
+
+    .legend-row {
+      display: grid;
+      grid-template-columns: 30px 1fr;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .road,
+    .trail {
+      height: 1px;
+      background: var(--ink);
+      width: 28px;
+      display: inline-block;
+    }
+
+    .trail {
+      background: repeating-linear-gradient(90deg, var(--ink) 0 3px, transparent 3px 6px);
+    }
+
+    .language {
+      position: absolute;
+      left: 26px;
+      bottom: 44px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .language span { color: var(--muted); }
+
+    .copyright {
+      position: absolute;
+      left: 26px;
+      bottom: 16px;
+      font-size: 10px;
+      color: var(--muted);
+      letter-spacing: 0.06em;
+    }
+
+    main {
+      position: relative;
+      min-width: 0;
+      padding: 24px 32px 26px;
+      overflow: hidden;
+    }
+
+    .top-line {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      align-items: center;
+      padding: 6px 34px;
+      font-size: 11px;
+      color: var(--muted);
+      letter-spacing: 0.12em;
+      pointer-events: none;
+    }
+
+    .top-line div:nth-child(2) { text-align: center; }
+    .top-line div:nth-child(3) { text-align: right; }
+
+    .compass {
+      position: absolute;
+      top: 2px;
+      left: 13%;
+      color: var(--muted);
+      font-size: 18px;
+      opacity: 0.6;
+    }
+
+    .workspace {
+      height: calc(100vh - 50px);
+      position: relative;
+      margin-top: 18px;
+      border: 1px solid transparent;
+    }
+
+    .section {
+      display: none;
+      height: 100%;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .section.active {
+      display: block;
+      animation: fadeIn 0.25s ease;
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .dashboard-board {
+      height: 100%;
+      padding: 38px 42px 30px;
+      border-left: 1px solid var(--line);
+      border-right: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 78% 16%, rgba(191, 242, 177, 0.22), transparent 18%),
+        radial-gradient(circle at 18% 88%, rgba(38, 49, 38, 0.08), transparent 22%),
+        rgba(230, 234, 226, 0.40);
+      position: relative;
+      overflow-y: auto;
+      overflow-x: hidden;
+    }
+
+    .dashboard-board::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(rgba(41, 49, 41, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(41, 49, 41, 0.08) 1px, transparent 1px);
+      background-size: 24% 100%, 100% 31%;
+      pointer-events: none;
+    }
+
+    .dash-header {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 20px;
+      align-items: end;
+      margin-bottom: 28px;
+    }
+
+    .dash-kicker {
+      font-size: 10px;
+      letter-spacing: 0.28em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 12px;
+    }
+
+    .dash-title {
+      font-family: "Staatliches", "Bebas Neue", sans-serif;
+      font-size: clamp(64px, 7.2vw, 112px);
+      line-height: 0.82;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+    }
+
+    .dash-actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding-bottom: 8px;
+    }
+
+    .dash-layout {
+      position: relative;
+      z-index: 2;
+      display: grid;
+      grid-template-columns: minmax(0, 1.4fr) 340px;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .student-map {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(185px, 1fr));
+      gap: 14px;
+      align-content: start;
+      overflow: auto;
+      padding-right: 4px;
+    }
+
+    .quick-panel {
+      display: grid;
+      gap: 14px;
+      align-content: start;
+    }
+
+    .dash-note {
+      background: var(--panel);
+      color: var(--cream);
+      border: 1px solid rgba(233, 255, 212, 0.14);
+      padding: 16px;
+      box-shadow: 0 18px 42px var(--shadow);
+    }
+
+    .dash-note h3 {
+      margin: 0 0 10px;
+      font-family: "Staatliches", sans-serif;
+      font-size: 36px;
+      line-height: 0.9;
+    }
+
+    .dash-note p {
+      margin: 0;
+      font-size: 11px;
+      line-height: 1.6;
+      color: rgba(233, 255, 212, 0.82);
+    }
+
+    .mini-stats {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .mini-stat {
+      border: 1px solid var(--line);
+      background: rgba(245, 247, 241, 0.38);
+      padding: 12px;
+    }
+
+    .mini-stat strong {
+      display: block;
+      font-family: "Staatliches", sans-serif;
+      font-size: 42px;
+      line-height: 0.9;
+    }
+
+    .mini-stat span {
+      display: block;
+      margin-top: 7px;
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+    }
+
+    .page-shell {
+      height: 100%;
+      padding: 42px 10px 10px;
+      overflow: auto;
+    }
+
+    .page-heading {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      gap: 24px;
+      align-items: end;
+      margin: 0 0 28px;
+    }
+
+    .page-title {
+      font-family: "Staatliches", sans-serif;
+      font-size: clamp(60px, 6.2vw, 104px);
+      line-height: 0.82;
+      letter-spacing: -0.02em;
+      text-transform: uppercase;
+      color: var(--ink);
+      max-width: 720px;
+    }
+
+    .page-subtitle {
+      color: var(--muted);
+      font-size: 11px;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      padding-bottom: 12px;
+      text-align: right;
+    }
+
+    .page-grid {
+      display: grid;
+      grid-template-columns: 1.15fr 0.85fr;
+      gap: 22px;
+    }
+
+    .content-area {
+      display: grid;
+      gap: 18px;
+      min-height: 0;
+    }
+
+    .panel {
+      background: rgba(230, 234, 226, 0.62);
+      border: 1px solid var(--line);
+      padding: 18px;
+      box-shadow: 0 20px 50px var(--shadow);
+      backdrop-filter: blur(5px);
+      overflow: auto;
+    }
+
+    .panel.dark {
+      background: var(--panel);
+      color: var(--cream);
+    }
+
+    .panel h3 {
+      margin: 0 0 14px;
+      font-family: "Staatliches", sans-serif;
+      font-size: 38px;
+      line-height: 0.9;
+      letter-spacing: 0.02em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow {
+      font-size: 10px;
+      letter-spacing: 0.16em;
+      text-transform: uppercase;
+      color: rgba(233, 255, 212, 0.72);
+      margin-bottom: 8px;
+      font-weight: 700;
+    }
+
+    .toolbar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      margin-bottom: 16px;
+    }
+
+    button, input, select, textarea { font-family: "Roboto Mono", monospace; }
+
+    .btn {
+      border: 1px solid var(--ink);
+      background: var(--ink);
+      color: var(--cream);
+      padding: 9px 13px;
+      font-size: 11px;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: 0.2s;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px var(--shadow);
+    }
+
+    .btn.light {
+      background: transparent;
+      color: var(--ink);
+    }
+
+    .btn.danger {
+      background: var(--danger);
+      border-color: var(--danger);
+    }
+
+    .field {
+      border: 1px solid var(--line);
+      background: rgba(245, 247, 241, 0.55);
+      color: var(--ink);
+      padding: 10px 11px;
+      font-size: 12px;
+      outline: none;
+      width: 100%;
+    }
+
+    textarea.field {
+      min-height: 120px;
+      resize: vertical;
+      line-height: 1.55;
+    }
+
+    .student-grid, .card-grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(190px, 1fr));
+      gap: 14px;
+    }
+
+    .student-card, .route-card {
+      position: relative;
+      min-height: 190px;
+      background: linear-gradient(145deg, rgba(38, 49, 38, 0.96), rgba(53, 70, 51, 0.88));
+      color: var(--cream);
+      border: 1px solid rgba(233, 255, 212, 0.15);
+      padding: 16px;
+      cursor: pointer;
+      overflow: hidden;
+      box-shadow: 0 18px 40px var(--shadow);
+      transition: 0.2s ease;
+    }
+
+    .student-card:hover, .route-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(233, 255, 212, 0.42);
+    }
+
+    .student-card::after, .route-card::after {
+      content: "";
+      position: absolute;
+      inset: auto -20px -55px auto;
+      width: 130px;
+      height: 130px;
+      border-radius: 50%;
+      border: 1px solid rgba(233, 255, 212, 0.18);
+    }
+
+    .student-card h3, .route-card h3 {
+      margin: 0 0 10px;
+      font-family: "TheJamsilLocal", "Noto Sans KR", sans-serif;
+      font-size: 33px;
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: 0.005em;
+    }
+
+    .tags {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin: 10px 0 12px;
+    }
+
+    .tag {
+      border: 1px solid rgba(233, 255, 212, 0.25);
+      padding: 3px 6px;
+      font-family: "Noto Sans KR", "Roboto Mono", sans-serif;
+      font-size: 9px;
+      letter-spacing: 0.02em;
+      color: rgba(233, 255, 212, 0.85);
+    }
+
+    .progress {
+      height: 8px;
+      border: 1px solid rgba(233, 255, 212, 0.22);
+      margin: 12px 0;
+      position: relative;
+    }
+
+    .progress span {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: var(--green);
+    }
+
+    .student-card p, .route-card p {
+      margin: 0;
+      font-family: "Noto Sans KR", "Roboto Mono", sans-serif;
+      font-size: 11px;
+      line-height: 1.65;
+      color: rgba(233, 255, 212, 0.8);
+    }
+
+    .student-detail {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .mini-box {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: rgba(245, 247, 241, 0.36);
+      min-height: 86px;
+    }
+
+    .mini-box strong {
+      display: block;
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 7px;
+    }
+
+    .mini-box p, .list p {
+      margin: 0;
+      font-size: 12px;
+      line-height: 1.55;
+      color: var(--ink);
+    }
+
+    .student-profile-head {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 16px;
+      align-items: start;
+      padding: 18px;
+      background: var(--panel);
+      color: var(--cream);
+      border: 1px solid rgba(233, 255, 212, 0.16);
+      margin-bottom: 18px;
+    }
+
+    .student-profile-head h3 {
+      margin: 0;
+      font-family: "TheJamsilLocal", "Noto Sans KR", sans-serif;
+      font-size: 46px;
+      line-height: 1.12;
+      font-weight: 700;
+      letter-spacing: 0.005em;
+    }
+
+    .student-profile-head p {
+      margin: 10px 0 0;
+      font-size: 12px;
+      line-height: 1.6;
+      color: rgba(233, 255, 212, 0.82);
+    }
+
+    .list {
+      display: grid;
+      gap: 10px;
+    }
+
+    .list-item {
+      border-left: 2px solid var(--ink);
+      padding: 9px 0 9px 12px;
+      background: rgba(245, 247, 241, 0.3);
+    }
+
+    .list-item .date {
+      font-size: 10px;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .list-item strong {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .calendar-toolbar {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items: end;
+      margin-bottom: 16px;
+    }
+
+    .calendar-form {
+      display: grid;
+      grid-template-columns: 1.1fr 0.9fr 1fr 1.5fr auto;
+      gap: 8px;
+    }
+
+    .view-tabs {
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+    }
+
+    .calendar-grid {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border-top: 1px solid var(--line);
+      border-left: 1px solid var(--line);
+    }
+
+    .calendar-grid.week-view {
+      grid-template-columns: repeat(7, 1fr);
+    }
+
+    .day {
+      min-height: 112px;
+      border-right: 1px solid var(--line);
+      border-bottom: 1px solid var(--line);
+      padding: 8px;
+      background: rgba(245, 247, 241, 0.26);
+      font-size: 11px;
+    }
+
+    .day strong {
+      display: block;
+      margin-bottom: 8px;
+      color: var(--muted);
+    }
+
+    .event {
+      background: var(--panel);
+      color: var(--cream);
+      padding: 4px 5px;
+      margin-bottom: 5px;
+      font-size: 9px;
+      line-height: 1.35;
+      cursor: pointer;
+    }
+
+    .generator-layout {
+      display: grid;
+      grid-template-columns: 0.95fr 1.05fr;
+      gap: 18px;
+    }
+
+    .choice-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+      margin: 10px 0 14px;
+    }
+
+    .choice {
+      border: 1px solid var(--line);
+      padding: 12px;
+      background: rgba(245, 247, 241, 0.35);
+      font-size: 11px;
+      cursor: pointer;
+    }
+
+    .choice.active {
+      background: var(--ink);
+      color: var(--cream);
+    }
+
+    .output {
+      white-space: pre-wrap;
+      font-size: 12px;
+      line-height: 1.65;
+      min-height: 260px;
+      color: rgba(233, 255, 212, 0.86);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+    }
+
+    th, td {
+      border-bottom: 1px solid var(--line);
+      padding: 10px 8px;
+      text-align: left;
+      vertical-align: top;
+    }
+
+    th {
+      font-size: 10px;
+      letter-spacing: 0.14em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    td[contenteditable="true"] {
+      background: rgba(245, 247, 241, 0.32);
+      outline: none;
+    }
+
+    .stat-line {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-size: 12px;
+    }
+
+    .stat-bar {
+      flex: 1;
+      height: 9px;
+      border: 1px solid var(--line);
+      position: relative;
+    }
+
+    .stat-bar span {
+      position: absolute;
+      inset: 0 auto 0 0;
+      background: var(--ink);
+    }
+
+    .saved {
+      font-size: 11px;
+      color: var(--muted);
+      margin-left: 8px;
+    }
+
+
+
+    .remove-student {
+      position: absolute;
+      right: 12px;
+      top: 12px;
+      z-index: 5;
+      padding: 5px 7px;
+      font-size: 9px;
+      opacity: 0.88;
+    }
+
+    .student-card .remove-student {
+      display: none;
+    }
+
+    #studentCards .student-card .remove-student {
+      display: inline-block;
+    }
+
+
+    .list-item [contenteditable="true"] {
+      outline: none;
+      border-bottom: 1px dashed rgba(41, 49, 41, 0.18);
+    }
+
+    .modal-backdrop {
+      position: fixed;
+      inset: 0;
+      background: rgba(38, 49, 38, 0.48);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      padding: 24px;
+    }
+
+    .modal-backdrop.active {
+      display: flex;
+    }
+
+    .modal {
+      width: min(680px, 96vw);
+      max-height: 88vh;
+      overflow: auto;
+      background: var(--bg);
+      border: 1px solid var(--ink);
+      box-shadow: 0 28px 80px rgba(0, 0, 0, 0.28);
+      padding: 22px;
+    }
+
+    .modal h3 {
+      margin: 0 0 16px;
+      font-family: "Staatliches", sans-serif;
+      font-size: 48px;
+      line-height: 0.85;
+    }
+
+    .modal-form {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 10px;
+    }
+
+    .modal-form .full {
+      grid-column: 1 / -1;
+    }
+
+    .file-input {
+      border: 1px dashed var(--line);
+      padding: 12px;
+      background: rgba(245, 247, 241, 0.35);
+      font-size: 12px;
+    }
+
+    @media (max-width: 1180px) {
+      body { overflow: auto; }
+      .app { grid-template-columns: 1fr; }
+      aside {
+        position: sticky;
+        top: 0;
+        height: auto;
+        padding-bottom: 20px;
+      }
+      nav {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+      }
+      .menu-title, .legend, .language, .copyright { display: none; }
+      main { min-height: 900px; }
+      .workspace { height: auto; min-height: 860px; }
+      .dash-layout, .student-grid, .student-map, .page-grid, .generator-layout, .card-grid {
+        grid-template-columns: 1fr;
+      }
+      .page-heading, .dash-header, .calendar-toolbar {
+        grid-template-columns: 1fr;
+      }
+      .page-subtitle { text-align: left; }
+      .calendar-form, .modal-form { grid-template-columns: 1fr; }
+    }
+  </style>
+  <style>
+    @font-face {
+      font-family: 'TheJamsilLocal';
+      src:
+        url('./jamsil.ttf') format('truetype'),
+        url('./jamsil.ttf.ttf') format('truetype'),
+        url('./The%20Jamsil%205%20Bold.ttf') format('truetype'),
+        url('./The Jamsil 5 Bold.ttf') format('truetype');
+      font-weight: 700;
+      font-style: normal;
+      font-display: swap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <aside>
+      <div class="brand-small">THE TRAILS OF ENGLISH CLASS</div>
+      <div class="menu-title">THE TABLE OF CLASS</div>
+
+      <nav>
+        <div class="nav-item active" data-section="dashboard"><span class="nav-icon">▥</span><span>DASHBOARD</span></div>
+        <div class="nav-item" data-section="students"><span class="nav-icon">◈</span><span>STUDENTS</span></div>
+        <div class="nav-item" data-section="lessons"><span class="nav-icon">⌁</span><span>LESSONS</span></div>
+        <div class="nav-item" data-section="exams"><span class="nav-icon">▣</span><span>SCHOOL EXAMS</span></div>
+        <div class="nav-item" data-section="performance"><span class="nav-icon">◐</span><span>PERFORMANCE</span></div>
+        <div class="nav-item" data-section="ai"><span class="nav-icon">✦</span><span>AI GENERATOR</span></div>
+        <div class="nav-item" data-section="archive"><span class="nav-icon">▤</span><span>ARCHIVE</span></div>
+        <div class="nav-item" data-section="calendar"><span class="nav-icon">▦</span><span>CALENDAR</span></div>
+        <div class="nav-item" data-section="reports"><span class="nav-icon">◧</span><span>REPORTS</span></div>
+        <div class="nav-item" data-section="teacher"><span class="nav-icon">♜</span><span>TEACHER</span></div>
+      </nav>
+
+      <div class="legend">
+        <div class="legend-row"><span class="road"></span><span>Class route</span></div>
+        <div class="legend-row"><span class="trail"></span><span>Study trail</span></div>
+        <div class="legend-row"><span>✦</span><span>AI spot</span></div>
+        <div class="legend-row"><span>◈</span><span>Student card</span></div>
+      </div>
+
+      <div class="language">EN <span>/ KR</span></div>
+      <div class="copyright">©2026 - TEACHER BOARD INC.</div>
+    </aside>
+
+    <main>
+      <div class="top-line">
+        <div>TEACHER BOARD</div>
+        <div>EST. 2026</div>
+        <div>- CLASS MAP -</div>
+      </div>
+      <div class="compass">✣</div>
+
+      <div class="workspace">
+        <section id="dashboard" class="section active">
+          <div class="dashboard-board">
+            <div class="dash-header">
+              <div>
+                <div class="dash-kicker">Teacher dashboard / student route board</div>
+                <div class="dash-title">CLASS<br>DASHBOARD</div>
+              </div>
+              <div class="dash-actions">
+                <button class="btn addStudentBtn">ADD STUDENT</button>
+              </div>
+            </div>
+
+            <div class="dash-layout">
+              <div class="student-map" id="dashboardCards"></div>
+
+              <aside class="quick-panel">
+                <div class="dash-note">
+                  <div class="eyebrow">TODAY HOT SPOT</div>
+                  <h3>MOCK TEST<br>WEEK</h3>
+                  <p>이번 주는 내신 대비 학생 5명의 시험 범위, 오답 유형, 수행평가 일정을 우선 확인하세요.</p>
+                </div>
+                <div class="mini-stats">
+                  <div class="mini-stat"><strong>04</strong><span>Today class</span></div>
+                  <div class="mini-stat"><strong>03</strong><span>Homework alert</span></div>
+                  <div class="mini-stat"><strong>05</strong><span>Exam mode</span></div>
+                  <div class="mini-stat"><strong>18</strong><span>AI materials</span></div>
+                </div>
+                <div class="dash-note">
+                  <div class="eyebrow">CLICK GUIDE</div>
+                  <h3>OPEN<br>STUDENT PAGE</h3>
+                  <p>학생 카드를 누르면 이름, 나이, 진도, 성적 통계, 메모, 리포트 기록이 있는 개별 페이지로 이동합니다.</p>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </section>
+
+        <section id="students" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">STUDENT<br>CARDS</div>
+              <div class="page-subtitle">Profile / Progress / Score / Memo</div>
+            </div>
+            <div class="toolbar"><button class="btn addStudentBtn">ADD STUDENT</button></div>
+            <div class="student-grid" id="studentCards"></div>
+          </div>
+        </section>
+
+        <section id="studentDetail" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">STUDENT<br>PAGE</div>
+              <div class="page-subtitle">Name / Age / Progress / Score / Memo / Reports</div>
+            </div>
+
+            <div class="student-profile-head">
+              <div>
+                <div class="eyebrow">SELECTED STUDENT</div>
+                <h3 id="detailName">김하윤</h3>
+                <p id="detailIntro">학생 카드에서 선택한 학생의 상세 페이지입니다.</p>
+              </div>
+              <button class="btn" id="backToStudents">BACK TO DASHBOARD</button>
+            </div>
+
+            <div class="page-grid">
+              <div class="panel">
+                <h3>Student Info</h3>
+                <div class="student-detail">
+                  <div class="mini-box"><strong>NAME</strong><p id="detailKoreanName">김하윤</p></div>
+                  <div class="mini-box"><strong>AGE / GRADE</strong><p id="detailGrade">중3</p></div>
+                  <div class="mini-box"><strong>PROGRESS</strong><p id="detailProgress">관계대명사 / 내신 대비</p></div>
+                  <div class="mini-box"><strong>SCORE STAT</strong><p id="detailScore">최근 내신 84점 · 단어 테스트 평균 91점</p></div>
+                </div>
+                <div class="mini-box" style="margin-top:12px;">
+                  <strong>MEMO</strong>
+                  <textarea class="field" id="detailMemo" placeholder="학생 메모를 입력하세요."></textarea>
+                  <div class="toolbar" style="margin-top:10px;">
+                    <button class="btn" id="saveMemo">SAVE MEMO</button><span class="saved" id="memoSaved"></span>
+                  </div>
+                </div>
+              </div>
+
+              <div class="panel">
+                <h3>Report History</h3>
+                <div class="list" id="studentReportList"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="lessons" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">LESSON<br>ROUTES</div>
+              <div class="page-subtitle">Daily record / Homework / Next plan</div>
+            </div>
+            <div class="page-grid">
+              <div class="panel">
+                <h3>Class Log</h3>
+                <div class="toolbar">
+                  <button class="btn" id="addLessonLog">ADD LESSON</button>
+                  <select class="field" id="lessonFilter" style="max-width:220px;"></select>
+                  <button class="btn light" id="saveLessonLogs">SAVE LOG</button><span class="saved" id="lessonLogSaved"></span>
+                </div>
+                <div class="list" id="lessonLogList"></div>
+              </div>
+              <div class="panel dark">
+                <div class="eyebrow">NEXT CLASS NOTE</div>
+                <h3>What to check</h3>
+                <textarea class="field" id="lessonCheckNote" style="min-height:260px; background:rgba(233,255,212,0.08); color:var(--cream); border-color:rgba(233,255,212,0.24);">1. 숙제 제출 여부 확인
+2. 지난 수업 오답 문장 다시 설명시키기
+3. 오늘 목표: 지문 구조 표시 → 문제 근거 찾기
+4. 수업 후 학부모 공유용 한 줄 피드백 작성</textarea>
+                <div class="toolbar" style="margin-top:12px;">
+                  <button class="btn light" id="saveLessonCheck" style="color:var(--cream); border-color:rgba(233,255,212,0.45);">SAVE NOTE</button>
+                  <span class="saved" id="lessonCheckSaved"></span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="exams" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">SCHOOL<br>EXAMS</div>
+              <div class="page-subtitle">Exam range / School materials / Wrong answers</div>
+            </div>
+            <div class="content-area">
+              <div class="panel">
+                <h3>Exam Management</h3>
+                <div class="toolbar">
+                  <button class="btn light" id="saveExamTable">SAVE EXAM</button><span class="saved" id="examTableSaved"></span>
+                </div>
+                <table id="examTable">
+                  <thead><tr><th>Student</th><th>School</th><th>Range</th><th>Status</th><th>Memo</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="panel">
+                <h3>Student Exam Memo</h3>
+                <div class="toolbar">
+                  <button class="btn light" id="saveExamMemos">SAVE MEMO</button><span class="saved" id="examMemoSaved"></span>
+                </div>
+                <div class="student-detail" id="examMemoGrid"></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="performance" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">PERFORM<br>ANCE</div>
+              <div class="page-subtitle">Student cards / Speaking / Listening / Audio upload</div>
+            </div>
+            <div class="card-grid" id="performanceCards"></div>
+          </div>
+        </section>
+
+        <section id="performanceDetail" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">PERFORMANCE<br>PAGE</div>
+              <div class="page-subtitle">Speaking / Listening / Feedback by student</div>
+            </div>
+            <div class="student-profile-head">
+              <div>
+                <div class="eyebrow">SELECTED STUDENT</div>
+                <h3 id="performanceName">김하윤</h3>
+                <p>수행평가 기록을 학생별로 관리하는 화면입니다.</p>
+              </div>
+              <button class="btn" onclick="showSection('performance')">BACK TO CARDS</button>
+            </div>
+            <div class="page-grid">
+              <div class="panel">
+                <h3>Speaking Evaluation</h3>
+                <div class="toolbar">
+                  <button class="btn">UPLOAD AUDIO</button>
+                  <button class="btn light">START RECORDING</button>
+                  <button class="btn light" id="savePerformance">SAVE</button>
+                </div>
+                <div class="student-detail">
+                  <div class="mini-box"><strong>Pronunciation</strong><textarea class="field perf-field" data-key="pronunciation">발음 정확도 평가</textarea></div>
+                  <div class="mini-box"><strong>Fluency</strong><textarea class="field perf-field" data-key="fluency">끊김, 속도, 자연스러움</textarea></div>
+                  <div class="mini-box"><strong>Expression</strong><textarea class="field perf-field" data-key="expression">핵심 표현 사용 여부</textarea></div>
+                  <div class="mini-box"><strong>Feedback</strong><textarea class="field perf-field" data-key="feedback">학생 맞춤 피드백</textarea></div>
+                </div>
+              </div>
+              <div class="panel">
+                <h3>Listening Test</h3>
+                <textarea class="field perf-field" data-key="listening" placeholder="듣기 문제 스크립트 또는 오디오 메모를 입력하세요."></textarea>
+                <div class="toolbar" style="margin-top: 12px;">
+                  <button class="btn">GENERATE QUESTIONS</button>
+                  <button class="btn light">SAVE TO STUDENT</button>
+                </div>
+                <span class="saved" id="performanceSaved"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="ai" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">AI<br>GENERATOR</div>
+              <div class="page-subtitle">Passage analysis / Question generator / Save to student</div>
+            </div>
+            <div class="generator-layout">
+              <div class="panel">
+                <h3>Input Source</h3>
+                <select class="field" id="aiStudentSelect"></select>
+                <div style="height: 10px;"></div>
+                <textarea class="field" placeholder="영어 지문을 붙여넣거나, 파일 업로드 기능을 연결할 수 있어요."></textarea>
+                <div class="choice-grid">
+                  <div class="choice active">어법 문제</div>
+                  <div class="choice">빈칸 추론</div>
+                  <div class="choice">순서 배열</div>
+                  <div class="choice">문장 삽입</div>
+                  <div class="choice">단어 테스트</div>
+                  <div class="choice">해설 생성</div>
+                </div>
+                <div class="toolbar">
+                  <button class="btn">GENERATE</button>
+                  <button class="btn light">UPLOAD FILE</button>
+                  <button class="btn light">SAVE</button>
+                </div>
+              </div>
+              <div class="panel dark">
+                <div class="eyebrow">AI OUTPUT PREVIEW</div>
+                <h3>Generated Material</h3>
+                <div class="output">[어법 변형 문제 예시]
+
+다음 밑줄 친 부분 중 어법상 어색한 것을 고르시오.
+
+1. The student who studies every day improves faster.
+2. The book which I bought it yesterday was useful.
+3. Learning English requires steady practice.
+4. The teacher explained the passage clearly.
+5. What matters most is consistency.
+
+정답: 2
+해설: 목적격 관계대명사 which가 이미 목적어 역할을 하므로 it은 불필요합니다.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="archive" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">CLASS<br>ARCHIVE</div>
+              <div class="page-subtitle">Student cards / Materials by student</div>
+            </div>
+            <div class="card-grid" id="archiveCards"></div>
+          </div>
+        </section>
+
+        <section id="archiveDetail" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">ARCHIVE<br>PAGE</div>
+              <div class="page-subtitle">Grammar / Reading / Vocabulary / School exam files</div>
+            </div>
+            <div class="student-profile-head">
+              <div>
+                <div class="eyebrow">SELECTED STUDENT</div>
+                <h3 id="archiveName">김하윤</h3>
+                <p>학생별 자료실입니다. 파일명/폴더/메모를 직접 수정하고 저장할 수 있습니다.</p>
+              </div>
+              <button class="btn" onclick="showSection('archive')">BACK TO CARDS</button>
+            </div>
+            <div class="panel">
+              <h3>Materials Library</h3>
+              <div class="toolbar">
+                <button class="btn" id="addArchiveRow">ADD MATERIAL</button>
+                <label class="btn light" for="pdfUpload">ADD PDF FILE</label>
+                <input id="pdfUpload" type="file" accept="application/pdf" style="display:none;">
+                <button class="btn light" id="saveArchive">SAVE ARCHIVE</button><span class="saved" id="archiveSaved"></span>
+              </div>
+              <table id="archiveTable">
+                <thead><tr><th>Folder</th><th>File</th><th>Memo</th><th>Last used</th><th>Open</th><th>Delete</th></tr></thead>
+                <tbody></tbody>
+              </table>
+            </div>
+          </div>
+        </section>
+
+        <section id="calendar" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">CLASS<br>CALENDAR</div>
+              <div class="page-subtitle">Add schedule / Weekly or monthly view</div>
+            </div>
+            <div class="panel">
+              <h3>Schedule Board</h3>
+              <div class="calendar-toolbar">
+                <div class="calendar-form">
+                  <select class="field" id="calStudent"></select>
+                  <input class="field" type="date" id="calDate">
+                  <input class="field" type="time" id="calTime">
+                  <input class="field" id="calTitle" placeholder="일정 내용: 예) 내신 대비 / 상담 / 보강">
+                  <button class="btn" id="addEvent">ADD</button>
+                </div>
+                <div class="view-tabs">
+                  <button class="btn" id="monthView">MONTH</button>
+                  <button class="btn light" id="weekView">WEEK</button>
+                </div>
+              </div>
+              <div class="calendar-grid" id="calendarGrid"></div>
+            </div>
+          </div>
+        </section>
+
+        <section id="reports" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">PARENT<br>REPORTS</div>
+              <div class="page-subtitle">Generate and save to student page</div>
+            </div>
+            <div class="page-grid">
+              <div class="panel">
+                <h3>Report Builder</h3>
+                <select class="field" id="reportStudent"></select>
+                <div style="height: 10px;"></div>
+                <textarea class="field" id="reportText">이번 달에는 관계대명사와 지문 구조 파악을 중심으로 수업했습니다. 개념 이해도는 좋아졌지만, 문제를 풀 때 근거 문장을 정확히 표시하는 연습이 더 필요합니다. 다음 달에는 내신 서술형 대비와 오답 유형 반복 훈련을 진행할 예정입니다.</textarea>
+                <div class="toolbar" style="margin-top: 12px;">
+                  <button class="btn" id="generateReport">GENERATE REPORT</button>
+                  <button class="btn light" id="copyReport">COPY</button>
+                  <button class="btn light" id="saveReportToStudent">SAVE TO STUDENT</button><span class="saved" id="reportSaved"></span>
+                </div>
+              </div>
+              <div class="panel dark">
+                <div class="eyebrow">PARENT MESSAGE PREVIEW</div>
+                <h3>Monthly Note</h3>
+                <div class="output" id="reportOutput">리포트 생성 버튼을 누르면 선택한 학생 페이지에 날짜와 함께 추가됩니다.</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section id="teacher" class="section">
+          <div class="page-shell">
+            <div class="page-heading">
+              <div class="page-title">TEACHER<br>OFFICE</div>
+              <div class="page-subtitle">Editable payment / Settlement / Class count</div>
+            </div>
+            <div class="content-area">
+              <div class="panel">
+                <h3>Payment Management</h3>
+                <div class="toolbar">
+                  <button class="btn" id="addPaymentRow">ADD ROW</button>
+                  <button class="btn light" id="saveTeacherOffice">SAVE OFFICE</button><span class="saved" id="teacherSaved"></span>
+                </div>
+                <table id="paymentTable">
+                  <thead><tr><th>Student</th><th>Month</th><th>Class Count</th><th>Payment</th><th>Memo</th></tr></thead>
+                  <tbody></tbody>
+                </table>
+              </div>
+              <div class="panel">
+                <h3>Monthly Settlement</h3>
+                <div class="student-detail">
+                  <div class="mini-box"><strong>Total Classes</strong><textarea class="field teacher-field" data-key="totalClasses">21회</textarea></div>
+                  <div class="mini-box"><strong>Paid</strong><textarea class="field teacher-field" data-key="paid">2명 완료</textarea></div>
+                  <div class="mini-box"><strong>Pending</strong><textarea class="field teacher-field" data-key="pending">1명 확인 필요</textarea></div>
+                  <div class="mini-box"><strong>Memo</strong><textarea class="field teacher-field" data-key="memo">월말 리포트 발송 후 6월 일정 확정하기.</textarea></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+
+
+  <div class="modal-backdrop" id="lessonModal">
+    <div class="modal">
+      <h3>Add Lesson</h3>
+      <div class="modal-form">
+        <select class="field" id="lessonStudent"></select>
+        <input class="field" id="lessonDate" type="date">
+        <input class="field full" id="lessonTitle" placeholder="수업 제목: 예) 관계대명사 복습">
+        <textarea class="field full" id="lessonBody" placeholder="수업 내용, 숙제, 다음 계획을 입력하세요."></textarea>
+      </div>
+      <div class="toolbar" style="margin-top:14px;">
+        <button class="btn" id="saveNewLesson">SAVE LESSON</button>
+        <button class="btn light" id="closeLessonModal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="studentModal">
+    <div class="modal">
+      <h3>Add Student</h3>
+      <div class="modal-form">
+        <input class="field" id="newName" placeholder="학생 이름: 예) 홍길동">
+        <input class="field" id="newGrade" placeholder="학년: 예) 중3">
+        <input class="field full" id="newCourse" placeholder="진도: 예) 관계대명사 / 내신 대비">
+        <input class="field full" id="newScore" placeholder="성적 통계: 예) 최근 내신 85점 · 단어 테스트 평균 90점">
+        <input class="field full" id="newTags" placeholder="태그: 예) 문법 약함, 내신 대비, 숙제 보통">
+        <textarea class="field full" id="newMemo" placeholder="메모"></textarea>
+      </div>
+      <div class="toolbar" style="margin-top:14px;">
+        <button class="btn" id="saveNewStudent">SAVE STUDENT</button>
+        <button class="btn light" id="closeStudentModal">CANCEL</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const baseStudents = [
+      { id:"hayoon", name:"김하윤", grade:"중3", course:"관계대명사 / 내신 대비", score:"최근 내신 84점 · 단어 테스트 평균 91점", memo:"문장 해석보다 글의 흐름을 먼저 잡는 훈련이 필요함.", tags:["문법 약함","내신 대비","숙제 보통"], progress:62 },
+      { id:"minjun", name:"이민준", grade:"고1", course:"빈칸 추론 / 모의고사 유형", score:"최근 모의고사 3등급 · 단어 테스트 평균 86점", memo:"오답 근거 표시 습관은 좋지만, 단어 누적 복습이 필요함.", tags:["모의고사","단어 부족","성장 중"], progress:74 },
+      { id:"jiwoo", name:"박지우", grade:"중2", course:"시제 / 기초 문법", score:"최근 내신 76점 · 단어 테스트 평균 79점", memo:"숙제 확인과 단어 누적 복습 루틴을 더 촘촘하게 잡아야 함.", tags:["기초 문법","듣기","관리 필요"], progress:48 },
+      { id:"seoyun", name:"최서윤", grade:"중3", course:"중3 총정리 / 고1 대비", score:"최근 내신 89점 · 단어 테스트 평균 94점", memo:"문법 이해는 안정적이며, 고등 지문으로 확장 가능함.", tags:["고1 대비","성실함","독해 강화"], progress:81 },
+      { id:"doyun", name:"정도윤", grade:"고2", course:"내신 서술형 / 어법", score:"최근 내신 92점 · 수행평가 A", memo:"서술형 답안의 정확성과 표현력을 함께 관리하면 좋음.", tags:["서술형","어법","상위권"], progress:88 },
+      { id:"yuna", name:"한유나", grade:"중1", course:"기초 독해 / 단어", score:"단어 테스트 평균 82점 · 듣기 안정적", memo:"영어 문장에 대한 자신감을 높이는 방향으로 수업 진행 중.", tags:["기초","단어","자신감"], progress:55 }
+    ];
+
+    let customStudents = JSON.parse(localStorage.getItem("ttb_custom_students") || "[]");
+    let removedStudentIds = JSON.parse(localStorage.getItem("ttb_removed_student_ids") || "[]");
+    let students = [...baseStudents, ...customStudents].filter(s => !removedStudentIds.includes(s.id));
+
+    const navItems = document.querySelectorAll(".nav-item");
+    const sections = document.querySelectorAll(".section");
+    let selectedStudentId = "hayoon";
+    let selectedArchiveId = "hayoon";
+    let selectedPerformanceId = "hayoon";
+    let calendarMode = "month";
+
+    const store = {
+      get(key, fallback) {
+        try { return JSON.parse(localStorage.getItem(key)) ?? fallback; }
+        catch { return fallback; }
+      },
+      set(key, value) {
+        localStorage.setItem(key, JSON.stringify(value));
+      }
+    };
+
+    const defaultReports = {};
+    const defaultArchive = {};
+    const defaultPerformance = {};
+    students.forEach(s => {
+      defaultReports[s.id] = [];
+      defaultArchive[s.id] = [
+        { folder:"Grammar", file:"관계대명사 핵심 정리.pdf", memo:"내신 대비", last:"May 29" },
+        { folder:"Reading", file:"지문 구조 분석.docx", memo:"독해 훈련", last:"May 28" }
+      ];
+      defaultPerformance[s.id] = {
+        pronunciation:"발음 정확도 평가",
+        fluency:"끊김, 속도, 자연스러움",
+        expression:"핵심 표현 사용 여부",
+        feedback:"학생 맞춤 피드백",
+        listening:""
+      };
+    });
+
+    let memos = store.get("ttb_memos", Object.fromEntries(students.map(s => [s.id, s.memo])));
+    let reports = store.get("ttb_reports", defaultReports);
+    let archives = store.get("ttb_archives", defaultArchive);
+    let performance = store.get("ttb_performance", defaultPerformance);
+    let examData = store.get("ttb_exam_data", {
+      hayoon: { school:"서연중", range:"Lesson 5-6, 프린트 3장", status:"예상문제 제작 중", memo:"서술형 대비 필요" },
+      minjun: { school:"한빛고", range:"교과서 4과 + 모의고사 2회", status:"오답 정리 완료", memo:"빈칸/순서 취약" },
+      jiwoo: { school:"도담중", range:"Lesson 3, 문법: 시제", status:"개념 복습 중", memo:"단어 암기 확인 필요" }
+    });
+    let examMemos = store.get("ttb_exam_memos", Object.fromEntries(students.map(s => [s.id, ""])));
+    let events = store.get("ttb_events", [
+      { studentId:"hayoon", date:"2026-05-29", time:"18:00", title:"김하윤 수업" },
+      { studentId:"jiwoo", date:"2026-05-26", time:"17:30", title:"박지우 수업" },
+      { studentId:"minjun", date:"2026-05-27", time:"20:00", title:"이민준 수업" }
+    ]);
+
+    let lessonLogs = store.get("ttb_lesson_logs", [
+      { id:"lesson_1", studentId:"hayoon", date:"2026-05-29", title:"관계대명사 복습", body:"주격/목적격 관계대명사 구분, 학교 프린트 2쪽 풀이, 숙제: 오답 문장 10개 재해석." },
+      { id:"lesson_2", studentId:"minjun", date:"2026-05-28", title:"빈칸 추론", body:"주제문 찾기, 연결사 단서 표시, 숙제: 2024 고1 6월 31-34번." },
+      { id:"lesson_3", studentId:"jiwoo", date:"2026-05-27", title:"현재완료", body:"과거시제와 차이 비교, 예문 만들기, 숙제: 단어 30개 + 문법 워크북." }
+    ]);
+    let teacherRows = store.get("ttb_teacher_rows", [
+      ["김하윤","May","8 / 8","입금 완료","6월 1주차 갱신 예정"],
+      ["이민준","May","6 / 8","확인 필요","보강 1회 포함"],
+      ["박지우","May","7 / 8","입금 완료","듣기 평가 자료 추가"]
+    ]);
+    let teacherSettlement = store.get("ttb_teacher_settlement", {
+      totalClasses:"21회",
+      paid:"2명 완료",
+      pending:"1명 확인 필요",
+      memo:"월말 리포트 발송 후 6월 일정 확정하기."
+    });
+    let lessonCheckNote = store.get("ttb_lesson_check_note", `1. 숙제 제출 여부 확인
+2. 지난 수업 오답 문장 다시 설명시키기
+3. 오늘 목표: 지문 구조 표시 → 문제 근거 찾기
+4. 수업 후 학부모 공유용 한 줄 피드백 작성`);
+
+    let activeMenu = "dashboard";
+
+    function showSection(target, keepMenu = null) {
+      if (keepMenu) {
+        activeMenu = keepMenu;
+      } else if ([...navItems].some(nav => nav.dataset.section === target)) {
+        activeMenu = target;
+      }
+      navItems.forEach(nav => nav.classList.toggle("active", nav.dataset.section === activeMenu));
+      sections.forEach(section => section.classList.toggle("active", section.id === target));
+    }
+    window.showSection = showSection;
+
+    navItems.forEach(item => {
+      item.addEventListener("click", () => showSection(item.dataset.section));
+    });
+
+    function studentCardHTML(s, type="student", removable=false) {
+      return `
+        <article class="${type === "route" ? "route-card" : "student-card"}" data-id="${s.id}">
+          ${removable ? `<button class="btn danger remove-student" data-id="${s.id}" title="학생 삭제">DELETE</button>` : ""}
+          <div class="eyebrow">${s.grade} / ENGLISH</div>
+          <h3>${s.name}</h3>
+          <div class="tags">${s.tags.map(t => `<span class="tag">${t}</span>`).join("")}</div>
+          <div class="progress"><span style="width: ${s.progress}%;"></span></div>
+          <p>현재 진도: ${s.course}<br>성적: ${s.score}</p>
+        </article>
+      `;
+    }
+
+
+    function ensureStudentStorage(id, memo) {
+      if (!memos[id]) memos[id] = memo || "";
+      if (!reports[id]) reports[id] = [];
+      if (!archives[id]) archives[id] = [];
+      if (!performance[id]) {
+        performance[id] = {
+          pronunciation:"발음 정확도 평가",
+          fluency:"끊김, 속도, 자연스러움",
+          expression:"핵심 표현 사용 여부",
+          feedback:"학생 맞춤 피드백",
+          listening:""
+        };
+      }
+      if (!examMemos[id]) examMemos[id] = "";
+      if (!examData[id]) examData[id] = { school:"", range:"", status:"", memo:"" };
+    }
+
+    function openStudentModal() {
+      document.getElementById("studentModal").classList.add("active");
+    }
+
+    function closeStudentModal() {
+      document.getElementById("studentModal").classList.remove("active");
+    }
+
+    document.querySelectorAll(".addStudentBtn").forEach(btn => btn.addEventListener("click", openStudentModal));
+    document.getElementById("closeStudentModal").addEventListener("click", closeStudentModal);
+    document.getElementById("studentModal").addEventListener("click", (event) => {
+      if (event.target.id === "studentModal") closeStudentModal();
+    });
+
+    document.getElementById("saveNewStudent").addEventListener("click", () => {
+      const name = document.getElementById("newName").value.trim();
+      if (!name) {
+        alert("학생 이름을 입력해 주세요.");
+        return;
+      }
+      const id = "custom_" + Date.now();
+      const newStudent = {
+        id,
+        name,
+        grade: document.getElementById("newGrade").value.trim() || "학년 미입력",
+        course: document.getElementById("newCourse").value.trim() || "진도 미입력",
+        score: document.getElementById("newScore").value.trim() || "성적 미입력",
+        memo: document.getElementById("newMemo").value.trim() || "",
+        tags: (document.getElementById("newTags").value || "신규 학생").split(",").map(t => t.trim()).filter(Boolean),
+        progress: 30
+      };
+      customStudents.push(newStudent);
+      students = [...baseStudents, ...customStudents].filter(s => !removedStudentIds.includes(s.id));
+      localStorage.setItem("ttb_custom_students", JSON.stringify(customStudents));
+      ensureStudentStorage(id, newStudent.memo);
+      store.set("ttb_memos", memos);
+      store.set("ttb_reports", reports);
+      store.set("ttb_archives", archives);
+      store.set("ttb_performance", performance);
+      store.set("ttb_exam_memos", examMemos);
+      store.set("ttb_exam_data", examData);
+      store.set("ttb_exam_data", examData);
+      ["newName","newGrade","newCourse","newScore","newTags","newMemo"].forEach(inputId => document.getElementById(inputId).value = "");
+      syncAllStudentViews();
+      closeStudentModal();
+    });
+
+
+
+
+    function syncLessonLogsWithStudents() {
+      const validIds = new Set(students.map(s => s.id));
+      lessonLogs = lessonLogs.filter(log => validIds.has(log.studentId));
+
+      students.forEach(s => {
+        const hasLog = lessonLogs.some(log => log.studentId === s.id);
+        if (!hasLog) {
+          lessonLogs.push({
+            id: "lesson_placeholder_" + s.id,
+            studentId: s.id,
+            date: new Date().toISOString().slice(0, 10),
+            title: "수업 기록 입력 필요",
+            body: "ADD LESSON 버튼으로 실제 수업 기록을 추가하거나 이 내용을 수정해 주세요."
+          });
+        }
+      });
+
+      store.set("ttb_lesson_logs", lessonLogs);
+    }
+
+    function syncTeacherRowsWithStudents() {
+      const existingByName = new Map(teacherRows.map(row => [row[0], row]));
+      teacherRows = students.map(s => {
+        const existing = existingByName.get(s.name);
+        if (existing) return existing;
+        return [s.name, "Month", "0 / 0", "입금 확인", "새 학생 정산 정보 입력"];
+      });
+      store.set("ttb_teacher_rows", teacherRows);
+    }
+
+    function renderLessonFilters() {
+      const allOption = `<option value="all">ALL STUDENTS</option>`;
+      const studentOptions = students.map(s => `<option value="${s.id}">${s.name}</option>`).join("");
+      const filter = document.getElementById("lessonFilter");
+      const lessonStudent = document.getElementById("lessonStudent");
+      if (filter) filter.innerHTML = allOption + studentOptions;
+      if (lessonStudent) lessonStudent.innerHTML = studentOptions;
+    }
+
+    function renderLessonLogs() {
+      syncLessonLogsWithStudents();
+      renderLessonFilters();
+
+      const list = document.getElementById("lessonLogList");
+      if (!list) return;
+      const selected = document.getElementById("lessonFilter")?.value || "all";
+      const visibleLogs = lessonLogs
+        .filter(log => selected === "all" || log.studentId === selected)
+        .sort((a, b) => String(b.date).localeCompare(String(a.date)));
+
+      if (!visibleLogs.length) {
+        list.innerHTML = `<div class="list-item"><div class="date">NO LOG</div><strong>수업 기록이 없습니다.</strong><p>ADD LESSON으로 수업 기록을 추가해 주세요.</p></div>`;
+        return;
+      }
+
+      list.innerHTML = visibleLogs.map(log => {
+        const student = students.find(s => s.id === log.studentId);
+        if (!student) return "";
+        return `
+          <div class="list-item" data-id="${log.id}">
+            <div class="date" contenteditable="true" data-field="date">${formatDateLabel(log.date)}</div>
+            <strong><span>${student.name}</span> - <span contenteditable="true" data-field="title">${escapeHtml(log.title)}</span></strong>
+            <p contenteditable="true" data-field="body">${escapeHtml(log.body)}</p>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function formatDateLabel(dateString) {
+      if (!dateString) return "";
+      const date = new Date(dateString);
+      if (Number.isNaN(date.getTime())) return dateString;
+      return date.toLocaleDateString("en-US", { month: "short", day: "2-digit" }).toUpperCase();
+    }
+
+    function parseDateFromLabel(label) {
+      const parsed = new Date(label);
+      if (!Number.isNaN(parsed.getTime())) return parsed.toISOString().slice(0, 10);
+      return label;
+    }
+
+    function escapeHtml(text) {
+      return String(text ?? "").replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+    }
+
+    function initLessonTools() {
+      const addBtn = document.getElementById("addLessonLog");
+      const closeBtn = document.getElementById("closeLessonModal");
+      const saveBtn = document.getElementById("saveNewLesson");
+      const filter = document.getElementById("lessonFilter");
+      const saveLogsBtn = document.getElementById("saveLessonLogs");
+
+      if (addBtn) {
+        addBtn.addEventListener("click", () => {
+          renderLessonFilters();
+          document.getElementById("lessonDate").value = new Date().toISOString().slice(0, 10);
+          document.getElementById("lessonTitle").value = "";
+          document.getElementById("lessonBody").value = "";
+          document.getElementById("lessonModal").classList.add("active");
+        });
+      }
+
+      if (closeBtn) closeBtn.addEventListener("click", () => document.getElementById("lessonModal").classList.remove("active"));
+      document.getElementById("lessonModal").addEventListener("click", (event) => {
+        if (event.target.id === "lessonModal") document.getElementById("lessonModal").classList.remove("active");
+      });
+
+      if (saveBtn) {
+        saveBtn.addEventListener("click", () => {
+          const studentId = document.getElementById("lessonStudent").value;
+          if (!studentId) {
+            alert("학생을 먼저 선택해 주세요.");
+            return;
+          }
+          lessonLogs.push({
+            id: "lesson_" + Date.now(),
+            studentId,
+            date: document.getElementById("lessonDate").value || new Date().toISOString().slice(0, 10),
+            title: document.getElementById("lessonTitle").value.trim() || "새 수업 기록",
+            body: document.getElementById("lessonBody").value.trim() || "수업 내용을 입력해 주세요."
+          });
+          store.set("ttb_lesson_logs", lessonLogs);
+          renderLessonLogs();
+          document.getElementById("lessonModal").classList.remove("active");
+        });
+      }
+
+      if (filter) filter.addEventListener("change", renderLessonLogs);
+
+      if (saveLogsBtn) {
+        saveLogsBtn.addEventListener("click", () => {
+          document.querySelectorAll("#lessonLogList .list-item").forEach(item => {
+            const id = item.dataset.id;
+            const log = lessonLogs.find(l => l.id === id);
+            if (!log) return;
+            log.date = parseDateFromLabel(item.querySelector('[data-field="date"]').textContent.trim());
+            log.title = item.querySelector('[data-field="title"]').textContent.trim();
+            log.body = item.querySelector('[data-field="body"]').textContent.trim();
+          });
+          store.set("ttb_lesson_logs", lessonLogs);
+          document.getElementById("lessonLogSaved").textContent = "저장됨";
+          setTimeout(() => document.getElementById("lessonLogSaved").textContent = "", 1500);
+          renderLessonLogs();
+        });
+      }
+    }
+
+
+    function initLessonCheckNote() {
+      const field = document.getElementById("lessonCheckNote");
+      if (!field) return;
+      field.value = lessonCheckNote;
+      document.getElementById("saveLessonCheck").addEventListener("click", () => {
+        lessonCheckNote = field.value;
+        store.set("ttb_lesson_check_note", lessonCheckNote);
+        document.getElementById("lessonCheckSaved").textContent = "저장됨";
+        setTimeout(() => document.getElementById("lessonCheckSaved").textContent = "", 1500);
+      });
+    }
+
+    function renderStudentCards() {
+      document.getElementById("dashboardCards").innerHTML = students.map(s => studentCardHTML(s)).join("");
+      document.getElementById("studentCards").innerHTML = students.map(s => studentCardHTML(s, "student", true)).join("");
+      document.getElementById("performanceCards").innerHTML = students.map(s => studentCardHTML(s, "route")).join("");
+      document.getElementById("archiveCards").innerHTML = students.map(s => studentCardHTML(s, "route")).join("");
+
+      document.querySelectorAll("#dashboardCards .student-card, #studentCards .student-card").forEach(card => {
+        card.addEventListener("click", () => openStudentDetail(card.dataset.id));
+      });
+
+      document.querySelectorAll(".remove-student").forEach(btn => {
+        btn.addEventListener("click", (event) => {
+          event.stopPropagation();
+          removeStudent(btn.dataset.id);
+        });
+      });
+
+      document.querySelectorAll("#performanceCards .route-card").forEach(card => {
+        card.addEventListener("click", () => openPerformanceDetail(card.dataset.id));
+      });
+      document.querySelectorAll("#archiveCards .route-card").forEach(card => {
+        card.addEventListener("click", () => openArchiveDetail(card.dataset.id));
+      });
+    }
+
+
+
+    function syncAllStudentViews() {
+      students.forEach(s => ensureStudentStorage(s.id, s.memo));
+      syncLessonLogsWithStudents();
+      syncTeacherRowsWithStudents();
+      renderStudentCards();
+      fillStudentSelects();
+      renderLessonLogs();
+      renderExamTable();
+      renderExamMemos();
+      renderCalendar();
+      renderTeacherTable();
+    }
+
+    function removeStudent(id) {
+      const student = students.find(s => s.id === id);
+      if (!student) return;
+      const ok = confirm(`${student.name} 학생을 삭제할까요?\\n저장된 메모, 리포트, 자료도 화면에서 함께 제거됩니다.`);
+      if (!ok) return;
+
+      if (id.startsWith("custom_")) {
+        customStudents = customStudents.filter(s => s.id !== id);
+        localStorage.setItem("ttb_custom_students", JSON.stringify(customStudents));
+      } else if (!removedStudentIds.includes(id)) {
+        removedStudentIds.push(id);
+        localStorage.setItem("ttb_removed_student_ids", JSON.stringify(removedStudentIds));
+      }
+
+      students = [...baseStudents, ...customStudents].filter(s => !removedStudentIds.includes(s.id));
+
+      delete memos[id];
+      delete reports[id];
+      delete archives[id];
+      delete performance[id];
+      delete examMemos[id];
+      delete examData[id];
+
+      store.set("ttb_memos", memos);
+      store.set("ttb_reports", reports);
+      store.set("ttb_archives", archives);
+      store.set("ttb_performance", performance);
+      store.set("ttb_exam_memos", examMemos);
+
+      events = events.filter(e => e.studentId !== id);
+      store.set("ttb_events", events);
+
+      syncAllStudentViews();
+
+      if (selectedStudentId === id) showSection("students", "students");
+    }
+
+
+    function fillStudentSelects() {
+      const options = students.length
+        ? students.map(s => `<option value="${s.id}">${s.name}</option>`).join("")
+        : `<option value="">학생 없음</option>`;
+      ["aiStudentSelect", "reportStudent", "calStudent"].forEach(id => {
+        document.getElementById(id).innerHTML = options;
+      });
+    }
+
+    function openStudentDetail(id) {
+      selectedStudentId = id;
+      const s = students.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById("detailName").textContent = s.name;
+      document.getElementById("detailIntro").textContent = `${s.name} 학생의 개별 관리 페이지입니다.`;
+      document.getElementById("detailKoreanName").textContent = s.name;
+      document.getElementById("detailGrade").textContent = s.grade;
+      document.getElementById("detailProgress").textContent = s.course;
+      document.getElementById("detailScore").textContent = s.score;
+      document.getElementById("detailMemo").value = memos[id] || s.memo;
+      renderReportHistory(id);
+      showSection("studentDetail", activeMenu);
+    }
+
+    function renderReportHistory(id) {
+      const list = document.getElementById("studentReportList");
+      const data = reports[id] || [];
+      if (!data.length) {
+        list.innerHTML = `<div class="list-item"><div class="date">NO REPORT</div><strong>아직 저장된 리포트가 없습니다.</strong><p>REPORTS 메뉴에서 Generate Report를 누르면 이곳에 날짜와 함께 추가됩니다.</p></div>`;
+        return;
+      }
+      list.innerHTML = data.slice().reverse().map(r => `
+        <div class="list-item">
+          <div class="date">${r.date}</div>
+          <strong>${r.title}</strong>
+          <p>${r.text}</p>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("saveMemo").addEventListener("click", () => {
+      memos[selectedStudentId] = document.getElementById("detailMemo").value;
+      store.set("ttb_memos", memos);
+      document.getElementById("memoSaved").textContent = "저장됨";
+      setTimeout(() => document.getElementById("memoSaved").textContent = "", 1500);
+    });
+
+    document.getElementById("backToStudents").addEventListener("click", () => showSection("dashboard"));
+
+    function openPerformanceDetail(id) {
+      selectedPerformanceId = id;
+      const s = students.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById("performanceName").textContent = s.name;
+      const data = performance[id] || defaultPerformance[id];
+      document.querySelectorAll(".perf-field").forEach(field => {
+        field.value = data[field.dataset.key] || "";
+      });
+      showSection("performanceDetail", "performance");
+    }
+
+    document.getElementById("savePerformance").addEventListener("click", () => {
+      performance[selectedPerformanceId] = {};
+      document.querySelectorAll(".perf-field").forEach(field => {
+        performance[selectedPerformanceId][field.dataset.key] = field.value;
+      });
+      store.set("ttb_performance", performance);
+      document.getElementById("performanceSaved").textContent = "저장됨";
+      setTimeout(() => document.getElementById("performanceSaved").textContent = "", 1500);
+    });
+
+    function openArchiveDetail(id) {
+      selectedArchiveId = id;
+      const s = students.find(x => x.id === id);
+      if (!s) return;
+      document.getElementById("archiveName").textContent = s.name;
+      renderArchiveTable(id);
+      showSection("archiveDetail", "archive");
+    }
+
+    function renderArchiveTable(id) {
+      const tbody = document.querySelector("#archiveTable tbody");
+      const data = archives[id] || [];
+      tbody.innerHTML = data.map((row, index) => `
+        <tr data-index="${index}">
+          <td contenteditable="true">${row.folder || ""}</td>
+          <td contenteditable="true">${row.file || ""}</td>
+          <td contenteditable="true">${row.memo || ""}</td>
+          <td contenteditable="true">${row.last || ""}</td>
+          <td>${row.dataUrl ? `<button class="btn light open-pdf" data-index="${index}">OPEN PDF</button>` : "—"}</td>
+          <td><button class="btn danger delete-archive" data-index="${index}">DELETE</button></td>
+        </tr>
+      `).join("");
+      document.querySelectorAll(".open-pdf").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const file = (archives[selectedArchiveId] || [])[Number(btn.dataset.index)];
+          if (file?.dataUrl) {
+            const win = window.open();
+            win.document.write(`<iframe src="${file.dataUrl}" style="width:100%;height:100vh;border:0;"></iframe>`);
+          }
+        });
+      });
+      document.querySelectorAll(".delete-archive").forEach(btn => {
+        btn.addEventListener("click", () => {
+          const index = Number(btn.dataset.index);
+          archives[selectedArchiveId].splice(index, 1);
+          store.set("ttb_archives", archives);
+          renderArchiveTable(selectedArchiveId);
+          document.getElementById("archiveSaved").textContent = "삭제됨";
+          setTimeout(() => document.getElementById("archiveSaved").textContent = "", 1500);
+        });
+      });
+    }
+
+    document.getElementById("addArchiveRow").addEventListener("click", () => {
+      const tbody = document.querySelector("#archiveTable tbody");
+      tbody.insertAdjacentHTML("beforeend", `<tr><td contenteditable="true">New Folder</td><td contenteditable="true">새 자료명</td><td contenteditable="true">메모</td><td contenteditable="true">${new Date().toLocaleDateString("ko-KR")}</td><td>—</td><td><button class="btn danger" onclick="this.closest(\'tr\').remove()">DELETE</button></td></tr>`);
+    });
+
+    document.getElementById("saveArchive").addEventListener("click", () => {
+      const rows = [...document.querySelectorAll("#archiveTable tbody tr")].map(tr => {
+        const tds = tr.querySelectorAll("td");
+        const oldIndex = Number(tr.dataset.index);
+        const previous = (archives[selectedArchiveId] || [])[oldIndex] || {};
+        return { folder:tds[0].textContent, file:tds[1].textContent, memo:tds[2].textContent, last:tds[3].textContent, dataUrl: previous.dataUrl || null };
+      });
+      archives[selectedArchiveId] = rows;
+      store.set("ttb_archives", archives);
+      document.getElementById("archiveSaved").textContent = "저장됨";
+      setTimeout(() => document.getElementById("archiveSaved").textContent = "", 1500);
+    });
+
+
+    document.getElementById("pdfUpload").addEventListener("change", (event) => {
+      const file = event.target.files[0];
+      if (!file) return;
+      if (file.type !== "application/pdf") {
+        alert("PDF 파일만 추가할 수 있어요.");
+        return;
+      }
+      const reader = new FileReader();
+      reader.onload = () => {
+        if (!archives[selectedArchiveId]) archives[selectedArchiveId] = [];
+        archives[selectedArchiveId].push({
+          folder: "PDF",
+          file: file.name,
+          memo: "업로드한 PDF 자료",
+          last: new Date().toLocaleDateString("ko-KR"),
+          dataUrl: reader.result
+        });
+        store.set("ttb_archives", archives);
+        renderArchiveTable(selectedArchiveId);
+        document.getElementById("archiveSaved").textContent = "PDF 추가됨";
+        setTimeout(() => document.getElementById("archiveSaved").textContent = "", 1500);
+        event.target.value = "";
+      };
+      reader.readAsDataURL(file);
+    });
+
+
+    document.querySelectorAll(".choice").forEach(choice => {
+      choice.addEventListener("click", () => {
+        document.querySelectorAll(".choice").forEach(c => c.classList.remove("active"));
+        choice.classList.add("active");
+      });
+    });
+
+
+
+    function renderExamTable() {
+      const tbody = document.querySelector("#examTable tbody");
+      if (!tbody) return;
+      tbody.innerHTML = students.map(s => {
+        const data = examData[s.id] || { school:"", range:"", status:"", memo:"" };
+        return `
+          <tr data-id="${s.id}">
+            <td>${s.name}</td>
+            <td contenteditable="true">${data.school || ""}</td>
+            <td contenteditable="true">${data.range || ""}</td>
+            <td contenteditable="true">${data.status || ""}</td>
+            <td contenteditable="true">${data.memo || ""}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    document.getElementById("saveExamTable").addEventListener("click", () => {
+      document.querySelectorAll("#examTable tbody tr").forEach(tr => {
+        const id = tr.dataset.id;
+        const tds = tr.querySelectorAll("td");
+        examData[id] = {
+          school: tds[1].textContent.trim(),
+          range: tds[2].textContent.trim(),
+          status: tds[3].textContent.trim(),
+          memo: tds[4].textContent.trim()
+        };
+      });
+      store.set("ttb_exam_data", examData);
+      document.getElementById("examTableSaved").textContent = "저장됨";
+      setTimeout(() => document.getElementById("examTableSaved").textContent = "", 1500);
+    });
+
+
+    function renderExamMemos() {
+      const grid = document.getElementById("examMemoGrid");
+      if (!grid) return;
+      grid.innerHTML = students.map(s => `
+        <div class="mini-box">
+          <strong>${s.name} / ${s.grade}</strong>
+          <textarea class="field exam-memo" data-id="${s.id}" placeholder="시험 범위, 오답 유형, 서술형 대비 메모를 입력하세요.">${examMemos[s.id] || ""}</textarea>
+        </div>
+      `).join("");
+    }
+
+    document.getElementById("saveExamMemos").addEventListener("click", () => {
+      document.querySelectorAll(".exam-memo").forEach(field => {
+        examMemos[field.dataset.id] = field.value;
+      });
+      store.set("ttb_exam_memos", examMemos);
+      document.getElementById("examMemoSaved").textContent = "저장됨";
+      setTimeout(() => document.getElementById("examMemoSaved").textContent = "", 1500);
+    });
+
+
+    function renderCalendar() {
+      const grid = document.getElementById("calendarGrid");
+      grid.className = `calendar-grid ${calendarMode === "week" ? "week-view" : ""}`;
+      const days = calendarMode === "week" ? 7 : 35;
+      const labels = ["MON","TUE","WED","THU","FRI","SAT","SUN"];
+      grid.innerHTML = "";
+      for (let i=0; i<days; i++) {
+        const dayNum = i + 1;
+        const label = calendarMode === "week" ? labels[i] : dayNum;
+        const dayEvents = events.filter(e => {
+          const d = new Date(e.date);
+          return calendarMode === "week" ? d.getDay() === ((i + 1) % 7) : d.getDate() === dayNum;
+        });
+        grid.insertAdjacentHTML("beforeend", `
+          <div class="day">
+            <strong>${label}</strong>
+            ${dayEvents.map(e => `<div class="event">${e.time} ${students.find(s => s.id === e.studentId)?.name || ""}<br>${e.title}</div>`).join("")}
+          </div>
+        `);
+      }
+    }
+
+    document.getElementById("addEvent").addEventListener("click", () => {
+      const studentId = document.getElementById("calStudent").value;
+      const date = document.getElementById("calDate").value;
+      const time = document.getElementById("calTime").value || "00:00";
+      const title = document.getElementById("calTitle").value || "새 일정";
+      if (!date) {
+        alert("날짜를 먼저 선택해 주세요.");
+        return;
+      }
+      events.push({ studentId, date, time, title });
+      store.set("ttb_events", events);
+      document.getElementById("calTitle").value = "";
+      renderCalendar();
+    });
+
+    document.getElementById("monthView").addEventListener("click", () => {
+      calendarMode = "month";
+      document.getElementById("monthView").className = "btn";
+      document.getElementById("weekView").className = "btn light";
+      renderCalendar();
+    });
+
+    document.getElementById("weekView").addEventListener("click", () => {
+      calendarMode = "week";
+      document.getElementById("weekView").className = "btn";
+      document.getElementById("monthView").className = "btn light";
+      renderCalendar();
+    });
+
+    function generateReportText() {
+      const id = document.getElementById("reportStudent").value;
+      const s = students.find(x => x.id === id);
+      const base = document.getElementById("reportText").value.trim();
+      return `${s.name} 학생 리포트
+
+${base}
+
+현재 진도: ${s.course}
+성적 메모: ${s.score}
+수업 메모: ${memos[id] || s.memo}`;
+    }
+
+    document.getElementById("generateReport").addEventListener("click", () => {
+      const output = generateReportText();
+      document.getElementById("reportOutput").textContent = output;
+      const id = document.getElementById("reportStudent").value;
+      saveReport(id, output);
+      document.getElementById("reportSaved").textContent = "학생 페이지에 저장됨";
+      setTimeout(() => document.getElementById("reportSaved").textContent = "", 1800);
+    });
+
+    document.getElementById("saveReportToStudent").addEventListener("click", () => {
+      const id = document.getElementById("reportStudent").value;
+      const output = document.getElementById("reportOutput").textContent || generateReportText();
+      saveReport(id, output);
+      document.getElementById("reportSaved").textContent = "학생 페이지에 저장됨";
+      setTimeout(() => document.getElementById("reportSaved").textContent = "", 1800);
+    });
+
+    function saveReport(id, text) {
+      const date = new Date().toLocaleDateString("ko-KR");
+      if (!reports[id]) reports[id] = [];
+      reports[id].push({ date, title:"학부모 상담 리포트", text });
+      store.set("ttb_reports", reports);
+      if (selectedStudentId === id) renderReportHistory(id);
+    }
+
+    document.getElementById("copyReport").addEventListener("click", async () => {
+      await navigator.clipboard.writeText(document.getElementById("reportOutput").textContent);
+      document.getElementById("reportSaved").textContent = "복사됨";
+      setTimeout(() => document.getElementById("reportSaved").textContent = "", 1500);
+    });
+
+    function renderTeacherTable() {
+      syncTeacherRowsWithStudents();
+      const tbody = document.querySelector("#paymentTable tbody");
+      tbody.innerHTML = teacherRows.map(row => `
+        <tr>${row.map(cell => `<td contenteditable="true">${cell}</td>`).join("")}</tr>
+      `).join("");
+      document.querySelectorAll(".teacher-field").forEach(field => {
+        field.value = teacherSettlement[field.dataset.key] || "";
+      });
+    }
+
+    document.getElementById("addPaymentRow").addEventListener("click", () => {
+      document.querySelector("#paymentTable tbody").insertAdjacentHTML("beforeend", `
+        <tr><td contenteditable="true">학생명</td><td contenteditable="true">Month</td><td contenteditable="true">0 / 0</td><td contenteditable="true">입금 확인</td><td contenteditable="true">메모</td></tr>
+      `);
+    });
+
+    document.getElementById("saveTeacherOffice").addEventListener("click", () => {
+      teacherRows = [...document.querySelectorAll("#paymentTable tbody tr")].map(tr => [...tr.querySelectorAll("td")].map(td => td.textContent));
+      teacherSettlement = {};
+      document.querySelectorAll(".teacher-field").forEach(field => {
+        teacherSettlement[field.dataset.key] = field.value;
+      });
+      store.set("ttb_teacher_rows", teacherRows);
+      store.set("ttb_teacher_settlement", teacherSettlement);
+      document.getElementById("teacherSaved").textContent = "저장됨";
+      setTimeout(() => document.getElementById("teacherSaved").textContent = "", 1500);
+    });
+
+    students.forEach(s => ensureStudentStorage(s.id, s.memo));
+    initLessonCheckNote();
+    initLessonTools();
+    syncAllStudentViews();
+  </script>
+</body>
+</html>
